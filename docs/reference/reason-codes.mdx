@@ -1,0 +1,291 @@
+---
+title: 'Reason Codes'
+description: 'Complete list of reason codes for visit changes and adjustments'
+---
+
+## Overview
+
+Reason codes explain why a visit was changed, adjusted, or entered manually. They must be provided in the `VisitChanges` segment when required.
+
+<Info>
+  **When Required**: Manual entries, adjusted times, visit updates, or any visit modification
+</Info>
+
+## All Reason Codes
+
+| Code | Reason | Note Required? | Applicable Payers |
+|------|--------|----------------|-------------------|
+| **01** | Client Requested a Different Visit Time | No | CTDSS/CTHH/CTMHW |
+| **02** | Staff Entered Wrong Santrax ID | No | CTDSS/CTHH/CTMHW |
+| **03** | No Calls Received; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **04** | No Out Call; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **05** | Scheduling Error | No | CTDSS/CTHH/CTMHW |
+| **06** | No In Call; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **07** | System Cancel | No | CTDSS/CTHH/CTMHW |
+| **08** | Client Requested Staff Change | No | CTDSS/CTHH/CTMHW |
+| **09** | Phone in Use by Patient/Family | No | CTDSS/CTHH/CTMHW |
+| **10** | Phone Disconnected | No | CTDSS/CTHH/CTMHW |
+| **11** | Client Emergency during scheduled visit | No | CTDSS/CTHH/CTMHW |
+| **12** | Staff Late | No | CTDSS/CTHH/CTMHW |
+| **13** | Staff Injured During Shift | No | CTDSS/CTHH/CTMHW |
+| **14** | Staff Family Emergency During Shift | No | CTDSS/CTHH/CTMHW |
+| **15** | Different Staff Reported for Shift | No | CTDSS/CTHH/CTMHW |
+| **16** | Staff Had Transportation Issue | No | CTDSS/CTHH/CTMHW |
+| **17** | Staff Scheduling Issue, Unable to Staff Entire Shift | No | CTDSS/CTHH/CTMHW |
+| **18** | Additional Staff needed for this case | No | CTDSS/CTHH/CTMHW |
+| **19** | Staff Arrived Early | No | CTDSS/CTHH/CTMHW |
+| **20** | Severe Inclement Weather or Natural Disaster | No | CTDSS/CTHH/CTMHW |
+| **21** | Staff Requested Time Off | No | CTDSS/CTHH/CTMHW |
+| **22** | Other; Documentation Provided | **Yes** | CTDSS/CTHH/CTMHW |
+| **23** | Phone not Functioning | No | CTDSS/CTHH/CTMHW |
+| **24** | Check-In Not Functioning; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **25** | Check-Out Not Functioning; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **26** | Update to Tasks; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **27** | FVV Unavailable; Documentation Provided | No | CTDSS/CTHH/CTMHW |
+| **28** | Schedule Change | No | CTDSS/CTHH/CTMHW |
+| **29** | Extended Shift | No | CTDSS/CTHH/CTMHW |
+| **30** | Blended Services Correction | No | CTDSS/CTHH/CTMHW |
+| **71** | Virtual Visit | No | CTDSS/CTHH/CTMHW |
+
+## Reason Codes Requiring Notes
+
+<Warning>
+  **ChangeReasonMemo Required**
+</Warning>
+
+The following reason codes **require** a `ChangeReasonMemo`:
+
+- **22** - Other; Documentation Provided
+- **Participant Refusal** (if applicable)
+- **Manual CallType** - Always requires explanation
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Staff Checked In Late">
+    **Reason Code**: `12` - Staff Late
+    
+    **Scenario**: Employee checked in at 9:10 AM but was scheduled for 9:00 AM
+    
+    ```json
+    {
+      "AdjInDateTime": "2024-01-15T09:00:00Z",
+      "AdjOutDateTime": "2024-01-15T13:00:00Z",
+      "VisitChanges": [{
+        "SequenceID": "1",
+        "ChangeMadeBy": "supervisor@example.com",
+        "ChangeDateTime": "2024-01-15T14:00:00Z",
+        "ReasonCode": "12",
+        "ChangeReasonMemo": null
+      }]
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Manual Entry">
+    **Reason Code**: `03` - No Calls Received; Documentation Provided
+    
+    **Scenario**: Visit entered manually after the fact
+    
+    ```json
+    {
+      "Calls": [{
+        "CallDateTime": "2024-01-15T09:00:00Z",
+        "CallAssignment": "Time In",
+        "CallType": "Manual"
+      }, {
+        "CallDateTime": "2024-01-15T13:00:00Z",
+        "CallAssignment": "Time Out",
+        "CallType": "Manual"
+      }],
+      "VisitChanges": [{
+        "SequenceID": "1",
+        "ChangeMadeBy": "admin@example.com",
+        "ChangeDateTime": "2024-01-15T14:00:00Z",
+        "ReasonCode": "03",
+        "ChangeReasonMemo": "Employee forgot to check in/out via mobile app"
+      }]
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Schedule Change">
+    **Reason Code**: `28` - Schedule Change
+    
+    **Scenario**: Client requested different time
+    
+    ```json
+    {
+      "VisitChanges": [{
+        "SequenceID": "2",
+        "ChangeMadeBy": "scheduler@example.com",
+        "ChangeDateTime": "2024-01-15T08:00:00Z",
+        "ReasonCode": "28",
+        "ChangeReasonMemo": null
+      }]
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Other Reason">
+    **Reason Code**: `22` - Other; Documentation Provided
+    
+    **Scenario**: Unique situation not covered by other codes
+    
+    ```json
+    {
+      "VisitChanges": [{
+        "SequenceID": "1",
+        "ChangeMadeBy": "supervisor@example.com",
+        "ChangeDateTime": "2024-01-15T14:00:00Z",
+        "ReasonCode": "22",
+        "ChangeReasonMemo": "Client had unexpected medical appointment, visit rescheduled with family approval"
+      }]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Validation Rules
+
+### Required Fields
+
+When using reason codes, the `VisitChanges` segment must include:
+- `SequenceID` - Sequence of this change
+- `ChangeMadeBy` - User who made the change
+- `ChangeDateTime` - When change was made
+- `ReasonCode` - One of the valid codes above
+- `ChangeReasonMemo` - Required for codes 22 and Manual CallType
+
+### Memo Requirements
+
+<Tabs>
+  <Tab title="Required">
+    **ChangeReasonMemo is REQUIRED when**:
+    - ReasonCode = "22" (Other)
+    - CallType = "Manual"
+    - Participant Refusal scenarios
+    
+    Max length: 256 characters
+  </Tab>
+  
+  <Tab title="Optional">
+    **ChangeReasonMemo is OPTIONAL for**:
+    - All other reason codes (01-21, 23-30, 71)
+    - Can provide additional context if desired
+    - Will be stored but not required
+  </Tab>
+</Tabs>
+
+## Usage in API
+
+### Basic Usage
+
+```json
+{
+  "VisitChanges": [{
+    "SequenceID": "1",
+    "ChangeMadeBy": "user@example.com",
+    "ChangeDateTime": "2024-01-15T14:00:00Z",
+    "ReasonCode": "12"
+  }]
+}
+```
+
+### With Memo
+
+```json
+{
+  "VisitChanges": [{
+    "SequenceID": "1",
+    "ChangeMadeBy": "user@example.com",
+    "ChangeDateTime": "2024-01-15T14:00:00Z",
+    "ReasonCode": "22",
+    "ChangeReasonMemo": "Unique situation requiring supervisor approval"
+  }]
+}
+```
+
+### Multiple Changes
+
+```json
+{
+  "VisitChanges": [
+    {
+      "SequenceID": "1",
+      "ChangeMadeBy": "user@example.com",
+      "ChangeDateTime": "2024-01-15T14:00:00Z",
+      "ReasonCode": "12"
+    },
+    {
+      "SequenceID": "2",
+      "ChangeMadeBy": "supervisor@example.com",
+      "ChangeDateTime": "2024-01-15T15:00:00Z",
+      "ReasonCode": "26",
+      "ChangeReasonMemo": "Updated tasks based on care plan revision"
+    }
+  ]
+}
+```
+
+## Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Missing ChangeReasonMemo | Code 22 without memo | Add ChangeReasonMemo |
+| Invalid ReasonCode | Code not in list | Use valid code from table |
+| Missing VisitChanges | Adjusted times without changes | Add VisitChanges segment |
+| Wrong format | ReasonCode as integer | Use string format ("12" not 12) |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Choose Specific Codes">
+    Use the most specific reason code available rather than defaulting to "22 - Other"
+    
+    ✅ Good: Use "12 - Staff Late" for late arrivals
+    
+    ❌ Avoid: Using "22 - Other" when a specific code exists
+  </Accordion>
+  
+  <Accordion title="Provide Clear Memos">
+    When memos are required or optional, provide clear, concise explanations
+    
+    ✅ Good: "Employee checked in 10 minutes late due to traffic accident on Route 84"
+    
+    ❌ Avoid: "late" or vague descriptions
+  </Accordion>
+  
+  <Accordion title="Track Changes">
+    Maintain your own audit log of changes in addition to the VisitChanges segment
+    
+    - Store original values
+    - Track who approved changes
+    - Document business justification
+  </Accordion>
+  
+  <Accordion title="Consistent Usage">
+    Establish organizational standards for which codes to use in which situations
+    
+    - Document internal policies
+    - Train staff on proper code selection
+    - Review usage patterns regularly
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Exceptions" icon="triangle-exclamation" href="/reference/exceptions">
+    View exception codes and handling
+  </Card>
+  <Card title="Visit Changes" icon="pen-to-square" href="/business-rules/visit-rules">
+    Understand when changes are required
+  </Card>
+  <Card title="Create Visit" icon="calendar-plus" href="/api-reference/visit/create">
+    Submit visits with reason codes
+  </Card>
+  <Card title="Call Logic" icon="clock" href="/business-rules/call-logic">
+    Understand call time scenarios
+  </Card>
+</CardGroup>

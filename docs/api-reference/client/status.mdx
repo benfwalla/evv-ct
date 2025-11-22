@@ -1,0 +1,430 @@
+---
+title: 'Check Client Status'
+api: 'GET https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status'
+description: 'Query the processing status of a client submission'
+---
+
+## Overview
+
+After submitting client data via POST, use this endpoint to check if the submission has been processed successfully or if there were any errors.
+
+<Info>
+  **Wait Time**: Wait at least 5 minutes after POST before checking status. The UUID is available for 48 hours.
+</Info>
+
+## Endpoint
+
+<CodeGroup>
+
+```bash Production
+GET https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid={uuid}
+```
+
+```bash UAT
+GET https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid={uuid}
+```
+
+</CodeGroup>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header
+  
+  Format: `Basic <base64(username:password)>`
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID (or use `EntityGuid` for multi-account)
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="uuid" type="string" required>
+  The UUID returned from the POST request
+  
+  **Example**: `7f6dcd1a-ec5e-4efd-a2d4-1049756016a5`
+</ParamField>
+
+## Response States
+
+### Processing (Not Ready)
+
+When the submission is still being processed:
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "The result for the input UUID is not ready yet. Please try again.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "The result for the input UUID is not ready yet. Please try again.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+<ResponseField name="status" type="string">
+  Will be `SUCCESS` even when processing
+</ResponseField>
+
+<ResponseField name="messageSummary" type="string">
+  Indicates processing status
+</ResponseField>
+
+**Action**: Wait 5 minutes and check again.
+
+### Success (All Records Processed)
+
+When all clients were successfully processed:
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "All records updated successfully.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "All records updated successfully.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+<ResponseField name="messageSummary" type="string">
+  `"All records updated successfully."` indicates complete success
+</ResponseField>
+
+**Action**: Clients are ready. Proceed with employee or visit submissions.
+
+### Failure (Validation Errors)
+
+When one or more clients failed validation:
+
+```json
+{
+  "id": "ea76e9a1-9b29-4f3d-af1c-6b573eb29b76",
+  "status": "SUCCESS",
+  "messageSummary": "[2] Records uploaded, please check errors/warnings and try again.",
+  "data": [
+    {
+      "ProviderIdentification": {
+        "ProviderID": "123456789",
+        "ProviderQualifier": "MedicaidID",
+        "ErrorCode": null,
+        "ErrorMessage": null
+      },
+      "ClientIdentifier": "987654321",
+      "ClientFirstName": "Jane",
+      "ClientLastName": "Doe",
+      "ClientMedicaidID": "987654321",
+      "SequenceID": 1,
+      "ErrorCode": "-100",
+      "ErrorMessage": "ERROR: ClientTimeZone is required. The record is being rejected."
+    },
+    {
+      "ProviderIdentification": {
+        "ProviderID": "123456789",
+        "ProviderQualifier": "MedicaidID",
+        "ErrorCode": null,
+        "ErrorMessage": null
+      },
+      "ClientIdentifier": "111222333",
+      "ClientFirstName": "John",
+      "ClientLastName": "Smith",
+      "ClientMedicaidID": "111222333",
+      "SequenceID": 1,
+      "ErrorCode": "-101",
+      "ErrorMessage": "ERROR: ClientAddress is required. At least one complete address must be provided."
+    }
+  ]
+}
+```
+
+<ResponseField name="messageSummary" type="string">
+  Shows count of failed records: `"[2] Records uploaded, please check errors/warnings and try again."`
+</ResponseField>
+
+<ResponseField name="data" type="array">
+  Array of rejected records with error details
+</ResponseField>
+
+<ResponseField name="ErrorCode" type="string">
+  Numeric error code (e.g., `-100`, `-709`)
+</ResponseField>
+
+<ResponseField name="ErrorMessage" type="string">
+  Detailed error description
+</ResponseField>
+
+**Action**: Fix errors and resubmit with incremented SequenceID.
+
+## Example Requests
+
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid=7f6dcd1a-ec5e-4efd-a2d4-1049756016a5" \
+  -H "Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=" \
+  -H "Account: 12345"
+```
+
+```javascript JavaScript
+const uuid = '7f6dcd1a-ec5e-4efd-a2d4-1049756016a5';
+
+const response = await fetch(
+  `https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid=${uuid}`,
+  {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+      'Account': '12345'
+    }
+  }
+);
+
+const result = await response.json();
+console.log(result.messageSummary);
+```
+
+```python Python
+import requests
+import time
+
+uuid = '7f6dcd1a-ec5e-4efd-a2d4-1049756016a5'
+
+# Wait 5 minutes before first check
+time.sleep(300)
+
+response = requests.get(
+    f'https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status',
+    params={'uuid': uuid},
+    headers={
+        'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+        'Account': '12345'
+    }
+)
+
+result = response.json()
+print(result['messageSummary'])
+```
+
+```csharp C#
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+var client = new HttpClient();
+var uuid = "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5";
+
+client.DefaultRequestHeaders.Add("Authorization", "Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=");
+client.DefaultRequestHeaders.Add("Account", "12345");
+
+// Wait 5 minutes before first check
+await Task.Delay(TimeSpan.FromMinutes(5));
+
+var response = await client.GetAsync(
+    $"https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid={uuid}"
+);
+
+var result = await response.Content.ReadAsStringAsync();
+Console.WriteLine(result);
+```
+
+</CodeGroup>
+
+## Status Check Workflow
+
+<Steps>
+  <Step title="Submit Clients">
+    POST client data and receive UUID
+    
+    ```json
+    {
+      "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+      "status": "SUCCESS",
+      "data": {
+        "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5"
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Wait 5 Minutes">
+    Allow time for processing. Checking too soon will always return "not ready yet"
+  </Step>
+  
+  <Step title="Check Status">
+    GET status using the UUID
+  </Step>
+  
+  <Step title="Evaluate Response">
+    - **"Not ready yet"**: Wait another 5 minutes and check again
+    - **"All records updated successfully"**: ✅ Success! Proceed to next step
+    - **"[N] Records uploaded, check errors"**: ❌ Fix errors and resubmit
+  </Step>
+  
+  <Step title="Handle Results">
+    - If successful: Continue with employees or visits
+    - If errors: Review error messages, fix data, increment SequenceID, resubmit
+  </Step>
+</Steps>
+
+## Common Error Codes
+
+| Error Code | Meaning | Solution |
+|------------|---------|----------|
+| `-100` | Missing required field | Add the required field |
+| `-101` | Invalid field format | Fix format (e.g., date, phone number) |
+| `-102` | Field too long | Truncate to max length |
+| `-103` | Invalid characters | Remove special characters |
+| `-709` | Duplicate SequenceID | Increment SequenceID |
+| `-710` | Client not found | Verify ClientIdentifier |
+
+## Polling Strategy
+
+<Warning>
+  **Important**: Don't poll too frequently. Excessive polling may impact performance.
+</Warning>
+
+### Recommended Approach
+
+```javascript
+async function checkClientStatus(uuid) {
+  const maxAttempts = 10;
+  const delayMinutes = 5;
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    console.log(`Checking status (attempt ${attempt}/${maxAttempts})...`);
+    
+    const response = await fetch(
+      `https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid=${uuid}`,
+      {
+        headers: {
+          'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+          'Account': '12345'
+        }
+      }
+    );
+    
+    const result = await response.json();
+    
+    // Check if processing is complete
+    if (result.messageSummary !== "The result for the input UUID is not ready yet. Please try again.") {
+      return result; // Processing complete (success or failure)
+    }
+    
+    // Wait before next attempt (except on last attempt)
+    if (attempt < maxAttempts) {
+      console.log(`Waiting ${delayMinutes} minutes before next check...`);
+      await new Promise(resolve => setTimeout(resolve, delayMinutes * 60 * 1000));
+    }
+  }
+  
+  throw new Error('Status check timed out after maximum attempts');
+}
+```
+
+### Timing Guidelines
+
+- **First Check**: 5 minutes after POST
+- **Subsequent Checks**: Every 5 minutes
+- **Maximum Wait**: 48 hours (UUID expires)
+- **Typical Processing**: 30 seconds to 5 minutes
+
+## UUID Expiration
+
+<Info>
+  UUIDs are available for **48 hours** after submission. After that, you cannot query the status.
+</Info>
+
+If you need to track submissions beyond 48 hours:
+- Store the UUID and submission timestamp in your database
+- Log the final status result
+- Implement your own audit trail
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Status Always Returns 'Not Ready Yet'">
+    **Possible Causes**:
+    - Checking too soon (wait full 5 minutes)
+    - Large batch size causing longer processing
+    - System under heavy load
+    
+    **Solutions**:
+    - Increase wait time between checks
+    - Reduce batch size
+    - Contact support if persists beyond 30 minutes
+  </Accordion>
+  
+  <Accordion title="UUID Not Found">
+    **Possible Causes**:
+    - UUID expired (>48 hours old)
+    - Incorrect UUID
+    - POST request failed
+    
+    **Solutions**:
+    - Verify UUID is correct
+    - Check POST response was successful
+    - Resubmit if UUID expired
+  </Accordion>
+  
+  <Accordion title="Multiple Errors Returned">
+    **Possible Causes**:
+    - Multiple clients in batch had errors
+    - Same error across multiple records
+    
+    **Solutions**:
+    - Review each error individually
+    - Fix common issues across all records
+    - Consider submitting in smaller batches
+  </Accordion>
+  
+  <Accordion title="Partial Success">
+    **Behavior**:
+    - Some clients accepted, some rejected
+    - Only rejected records returned in response
+    
+    **Action**:
+    - Accepted clients are already in system
+    - Only resubmit rejected clients
+    - Increment SequenceID for resubmissions
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Create Client"
+    icon="plus"
+    href="/api-reference/client/create"
+  >
+    Submit client data
+  </Card>
+  <Card
+    title="Create Employee"
+    icon="user"
+    href="/api-reference/employee/create"
+  >
+    Next: Add employees
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="triangle-exclamation"
+    href="/concepts/error-handling"
+  >
+    Learn about error handling
+  </Card>
+  <Card
+    title="Business Rules"
+    icon="book"
+    href="/business-rules/client-rules"
+  >
+    Understand validation rules
+  </Card>
+</CardGroup>

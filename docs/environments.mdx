@@ -1,0 +1,272 @@
+---
+title: 'Environments'
+description: 'UAT and Production environment details'
+---
+
+## Available Environments
+
+The CT EVV API provides two environments for development and production use.
+
+<CardGroup cols={2}>
+  <Card title="UAT (Testing)" icon="flask">
+    For development, testing, and user acceptance
+  </Card>
+  <Card title="Production" icon="rocket">
+    For live data submission
+  </Card>
+</CardGroup>
+
+## UAT Environment
+
+Use the UAT environment for:
+- Initial integration development
+- Testing new features
+- User acceptance testing (UAT)
+- Training and demonstrations
+
+### UAT Endpoints
+
+<CodeGroup>
+
+```bash Clients
+https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1
+```
+
+```bash Employees
+https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1
+```
+
+```bash Visits
+https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1
+```
+
+</CodeGroup>
+
+### UAT WADL Documentation
+
+Access API documentation at:
+
+```
+https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1/wadl
+https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1/wadl
+https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1/wadl
+```
+
+## Production Environment
+
+Use the Production environment for:
+- Live visit data submission
+- Real client and employee management
+- Actual billing and claims processing
+
+<Warning>
+  Production data affects real billing and claims. Ensure thorough testing in UAT before moving to Production.
+</Warning>
+
+### Production Endpoints
+
+<CodeGroup>
+
+```bash Clients
+https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1
+```
+
+```bash Employees
+https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1
+```
+
+```bash Visits
+https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1
+```
+
+</CodeGroup>
+
+### Production WADL Documentation
+
+Access API documentation at:
+
+```
+https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/wadl
+https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/wadl
+https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1/wadl
+```
+
+## Environment Differences
+
+| Feature | UAT | Production |
+|---------|-----|------------|
+| **Purpose** | Testing & Development | Live Operations |
+| **Data** | Test/Sample Data | Real Client Data |
+| **Credentials** | Separate UAT credentials | Separate Production credentials |
+| **Billing Impact** | No | Yes |
+| **Uptime SLA** | Best effort | 99.9% |
+| **Support Hours** | Business hours | 24/7 for critical issues |
+
+## Migration Process
+
+<Steps>
+  <Step title="Complete UAT Testing">
+    - Test all three endpoints (Client, Employee, Visit)
+    - Validate business rules and error handling
+    - Perform end-to-end workflow testing
+    - Document any issues or questions
+  </Step>
+
+  <Step title="Request Production Access">
+    Contact your Sandata implementation manager to:
+    - Schedule production cutover
+    - Receive production credentials
+    - Review go-live checklist
+  </Step>
+
+  <Step title="Production Deployment">
+    - Update configuration with production URLs
+    - Update credentials
+    - Perform smoke tests
+    - Monitor initial submissions closely
+  </Step>
+
+  <Step title="Ongoing Monitoring">
+    - Monitor error rates
+    - Track processing times
+    - Review rejection reports
+    - Maintain regular communication with Sandata
+  </Step>
+</Steps>
+
+## Rate Limits & Performance
+
+### Transaction Limits
+
+Both environments enforce the same limits:
+
+<ParamField body="records_per_transaction" type="number" default="1-5000">
+  Each POST request can contain 1 to 5,000 records
+</ParamField>
+
+<ParamField body="processing_time" type="string" default="varies">
+  Processing time varies based on:
+  - Number of records in transaction
+  - System load
+  - Complexity of validation rules
+  
+  Typical processing: 30 seconds to 5 minutes
+</ParamField>
+
+<ParamField body="status_check_interval" type="string" default="5 minutes">
+  Wait at least 5 minutes before checking status
+</ParamField>
+
+### Peak Load Handling
+
+During peak loads:
+- Records may be queued for processing
+- Status checks may return "not ready yet"
+- Expected behavior: Wait and retry status check
+
+<Info>
+  If you receive "The result for the input UUID is not ready yet", wait 5 minutes and check again.
+</Info>
+
+## VPN Requirements
+
+<Warning>
+  **Critical**: All API requests must originate from within the USA.
+</Warning>
+
+Both UAT and Production environments require:
+- Requests from US-based servers, OR
+- Requests through a US-based VPN
+
+International requests will be rejected with a 403 Forbidden error.
+
+## Support by Environment
+
+### UAT Support
+
+- **Email**: support@sandata.com
+- **Hours**: Monday - Friday, 8:00 AM - 6:00 PM EST
+- **Response Time**: Within 1 business day
+
+### Production Support
+
+- **Email**: support@sandata.com
+- **Phone**: 516.484.4400
+- **Hours**: 
+  - Standard: Monday - Friday, 8:00 AM - 6:00 PM EST
+  - Critical Issues: 24/7 on-call support
+- **Response Time**: 
+  - Critical: Within 1 hour
+  - High: Within 4 hours
+  - Normal: Within 1 business day
+
+## Health & Status
+
+### Checking API Health
+
+Both environments provide health check endpoints:
+
+```bash
+curl -X GET https://api.sandata.com/health
+curl -X GET https://uat-api.sandata.com/health
+```
+
+### Maintenance Windows
+
+- **UAT**: Maintenance may occur anytime with 24-hour notice
+- **Production**: Scheduled during off-peak hours (typically Sunday 2:00-6:00 AM EST)
+
+Maintenance notifications are sent via email to registered contacts.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Environment Separation">
+    - Maintain separate configurations for UAT and Production
+    - Never use production credentials in UAT
+    - Use environment variables for URLs and credentials
+    - Implement clear visual indicators of which environment is active
+  </Accordion>
+
+  <Accordion title="Testing Strategy">
+    - Test all scenarios in UAT first
+    - Use realistic test data volumes
+    - Test error handling and edge cases
+    - Perform load testing in UAT
+    - Document test results
+  </Accordion>
+
+  <Accordion title="Monitoring">
+    - Log all API requests and responses (without credentials)
+    - Monitor success/failure rates
+    - Track processing times
+    - Set up alerts for unusual patterns
+    - Review logs regularly
+  </Accordion>
+
+  <Accordion title="Deployment">
+    - Use blue-green or canary deployment strategies
+    - Have rollback procedures ready
+    - Monitor closely after deployment
+    - Keep UAT environment synchronized with production code
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Data Types"
+    icon="database"
+    href="/concepts/data-types"
+  >
+    Learn about data formats and types
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Explore all available endpoints
+  </Card>
+</CardGroup>

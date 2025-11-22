@@ -1,0 +1,397 @@
+---
+title: 'Exceptions'
+description: 'Exception codes and handling for EVV visits'
+---
+
+## Overview
+
+Exceptions are validation issues that occur during visit processing. Some exceptions require fixing and resubmission, while others can be acknowledged.
+
+## Exception Types
+
+<CardGroup cols={2}>
+  <Card title="Fix Required" icon="wrench">
+    Must correct data and resubmit
+    Exceptions: 0, 1, 3, 4, 23
+  </Card>
+  <Card title="Acknowledgeable" icon="check">
+    Can be acknowledged without fixing
+    Exception: 15
+  </Card>
+</CardGroup>
+
+## All Exceptions
+
+| Code | Type | Name | Description |
+|------|------|------|-------------|
+| **0** | Fix | Unknown Client | Visit performed for client not in EVV system |
+| **1** | Fix | Unknown Employee | Visit performed by employee not in EVV system |
+| **3** | Fix | Visits Without In-Calls | Visit recorded without "in" call |
+| **4** | Fix | Visits Without Out-Calls | Visit recorded without "out" call |
+| **15** | Acknowledge | Unmatched Client ID / Phone | Visit from phone number not matched to client (Telephony only) |
+| **23** | Fix | Missing Service | Service provided during visit not recorded |
+
+## Fix-Required Exceptions
+
+### Exception 0: Unknown Client
+
+**Cause**: Visit submitted for client that doesn't exist in system
+
+**Solution**:
+1. Create client record first
+2. Wait for client to be accepted
+3. Resubmit visit
+
+```json
+// Error Response
+{
+  "ErrorCode": "0",
+  "ErrorMessage": "Unknown Client. Client must exist before submitting visit."
+}
+
+// Solution: Create client first
+POST /clients/rest/api/v1.1
+[{
+  "ClientIdentifier": "987654321",
+  "ClientFirstName": "John",
+  "ClientLastName": "Doe",
+  ...
+}]
+
+// Then submit visit
+POST /visits/rest/api/v1.1
+[{
+  "ClientIdentifier": "987654321",
+  ...
+}]
+```
+
+### Exception 1: Unknown Employee
+
+**Cause**: Visit submitted for employee that doesn't exist in system
+
+**Solution**:
+1. Create employee record first
+2. Wait for employee to be accepted
+3. Resubmit visit
+
+```json
+// Error Response
+{
+  "ErrorCode": "1",
+  "ErrorMessage": "Unknown Employee. Worker not found in system."
+}
+
+// Solution: Create employee first
+POST /employees/rest/api/v1.1
+[{
+  "EmployeeIdentifier": "000012345",
+  "EmployeeFirstName": "Jane",
+  "EmployeeLastName": "Smith",
+  ...
+}]
+
+// Then submit visit
+POST /visits/rest/api/v1.1
+[{
+  "EmployeeIdentifier": "000012345",
+  ...
+}]
+```
+
+### Exception 3: Visits Without In-Calls
+
+**Cause**: Visit doesn't have a "Time In" call
+
+**Solution**: Add Calls segment with Time In call
+
+```json
+// Error Response
+{
+  "ErrorCode": "3",
+  "ErrorMessage": "Visit Without In-Call. All visits require Time In call."
+}
+
+// Solution: Add Time In call
+{
+  "Calls": [{
+    "CallDateTime": "2024-01-15T09:00:00Z",
+    "CallAssignment": "Time In",
+    "CallType": "Mobile",
+    ...
+  }, {
+    "CallDateTime": "2024-01-15T13:00:00Z",
+    "CallAssignment": "Time Out",
+    "CallType": "Mobile",
+    ...
+  }]
+}
+```
+
+### Exception 4: Visits Without Out-Calls
+
+**Cause**: Visit doesn't have a "Time Out" call
+
+**Solution**: Add Calls segment with Time Out call
+
+```json
+// Error Response
+{
+  "ErrorCode": "4",
+  "ErrorMessage": "Visit Without Out-Call. All visits require Time Out call."
+}
+
+// Solution: Add Time Out call
+{
+  "Calls": [{
+    "CallDateTime": "2024-01-15T09:00:00Z",
+    "CallAssignment": "Time In",
+    "CallType": "Mobile",
+    ...
+  }, {
+    "CallDateTime": "2024-01-15T13:00:00Z",
+    "CallAssignment": "Time Out",
+    "CallType": "Mobile",
+    ...
+  }]
+}
+```
+
+### Exception 23: Missing Service
+
+**Cause**: Visit doesn't have a valid procedure code
+
+**Solution**: Add valid ProcedureCode for the payer/program
+
+```json
+// Error Response
+{
+  "ErrorCode": "23",
+  "ErrorMessage": "Missing Service. Valid procedure code required."
+}
+
+// Solution: Add valid procedure code
+{
+  "PayerID": "CTHH",
+  "PayerProgram": "HHI",
+  "ProcedureCode": "T1004",
+  "Modifier1": "NULL",
+  ...
+}
+```
+
+## Acknowledgeable Exceptions
+
+### Exception 15: Unmatched Client ID / Phone
+
+**Cause**: Visit recorded from phone number not matched to client (Telephony only)
+
+**Solution**: Acknowledge the exception
+
+```json
+{
+  "VisitExceptionAcknowledgement": [{
+    "ExceptionID": "15",
+    "ExceptionAcknowledged": "true"
+  }]
+}
+```
+
+**When to Use**:
+- Telephony visits where phone number verification failed
+- Client called from different phone than registered
+- Emergency situations requiring immediate care
+
+**Requirements**:
+- Must attest that exception has been reviewed
+- Must confirm appropriate documentation exists
+- Must acknowledge in system
+
+## Exception Workflow
+
+<Steps>
+  <Step title="Submit Visit">
+    POST visit data to API
+  </Step>
+  
+  <Step title="Receive Response">
+    Check for exceptions in status response
+  </Step>
+  
+  <Step title="Identify Exception Type">
+    Determine if exception requires fix or acknowledgement
+  </Step>
+  
+  <Step title="Take Action">
+    **Fix Required**: Correct data and resubmit
+    
+    **Acknowledgeable**: Add VisitExceptionAcknowledgement segment
+  </Step>
+  
+  <Step title="Resubmit">
+    Increment SequenceID and resubmit visit
+  </Step>
+</Steps>
+
+## Usage in API
+
+### Acknowledging Exception
+
+```json
+{
+  "VisitOtherID": "VISIT001",
+  "SequenceID": 2,
+  ...
+  "VisitExceptionAcknowledgement": [{
+    "ExceptionID": "15",
+    "ExceptionAcknowledged": "true"
+  }]
+}
+```
+
+### Multiple Exceptions
+
+```json
+{
+  "VisitExceptionAcknowledgement": [
+    {
+      "ExceptionID": "15",
+      "ExceptionAcknowledged": "true"
+    },
+    {
+      "ExceptionID": "23",
+      "ExceptionAcknowledged": "false"
+    }
+  ]
+}
+```
+
+## Validation Rules
+
+<Warning>
+  **Important Rules**
+</Warning>
+
+### Fix-Required Exceptions
+- Cannot be acknowledged
+- Must fix underlying issue
+- Resubmit with corrected data
+- Increment SequenceID
+
+### Acknowledgeable Exceptions
+- Can be acknowledged with VisitExceptionAcknowledgement segment
+- Requires attestation
+- Documentation must exist
+- ExceptionAcknowledged must be "true"
+
+### Exception ID Format
+- Must be string, not integer
+- Use exact values from table
+- Case sensitive
+
+## Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Cannot acknowledge | Trying to acknowledge fix-required exception | Fix data and resubmit |
+| Invalid ExceptionID | ExceptionID not in list | Use valid exception code |
+| Missing acknowledgement | Exception 15 not acknowledged | Add VisitExceptionAcknowledgement |
+| Wrong format | ExceptionID as integer | Use string format ("15" not 15) |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Prevent Exceptions">
+    **Before Submitting Visits**:
+    - Verify employees exist
+    - Verify clients exist
+    - Include both Time In and Time Out calls
+    - Use valid procedure codes
+    - Test with small batches first
+  </Accordion>
+  
+  <Accordion title="Monitor Exceptions">
+    **Track Exception Rates**:
+    - Log all exceptions received
+    - Identify patterns
+    - Address root causes
+    - Train staff on prevention
+  </Accordion>
+  
+  <Accordion title="Document Acknowledgements">
+    **For Acknowledgeable Exceptions**:
+    - Maintain audit trail
+    - Document reason for acknowledgement
+    - Store supporting documentation
+    - Review periodically
+  </Accordion>
+  
+  <Accordion title="Quick Resolution">
+    **When Exceptions Occur**:
+    - Address immediately
+    - Don't let exceptions accumulate
+    - Fix root cause, not just symptoms
+    - Update processes to prevent recurrence
+  </Accordion>
+</AccordionGroup>
+
+## Exception Prevention Checklist
+
+<Steps>
+  <Step title="Data Validation">
+    ✅ Validate all required fields before submission
+    
+    ✅ Check employee and client exist
+    
+    ✅ Verify procedure codes are valid
+    
+    ✅ Ensure calls are complete
+  </Step>
+  
+  <Step title="Submission Order">
+    ✅ Create employees first
+    
+    ✅ Create clients second
+    
+    ✅ Submit visits last
+    
+    ✅ Wait for acceptance before proceeding
+  </Step>
+  
+  <Step title="Testing">
+    ✅ Test in UAT environment
+    
+    ✅ Submit small batches first
+    
+    ✅ Verify success before scaling
+    
+    ✅ Monitor error rates
+  </Step>
+  
+  <Step title="Monitoring">
+    ✅ Check status regularly
+    
+    ✅ Log all exceptions
+    
+    ✅ Track resolution time
+    
+    ✅ Review patterns monthly
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Reason Codes" icon="list" href="/reference/reason-codes">
+    View reason codes for changes
+  </Card>
+  <Card title="Visit Rules" icon="book" href="/business-rules/visit-rules">
+    Understand visit validation
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/concepts/error-handling">
+    Learn error handling strategies
+  </Card>
+  <Card title="Create Visit" icon="calendar-plus" href="/api-reference/visit/create">
+    Submit visits correctly
+  </Card>
+</CardGroup>

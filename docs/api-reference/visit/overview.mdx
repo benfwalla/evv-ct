@@ -1,0 +1,346 @@
+---
+title: 'Visit Endpoint Overview'
+description: 'Manage EVV visit data including calls, tasks, and changes'
+---
+
+## What is a Visit?
+
+A **Visit** represents an Electronic Visit Verification (EVV) event where an employee provides services to a client. Visits capture the who, what, when, and where of service delivery, including:
+
+- Time in/out (via calls or manual entry)
+- Services provided (procedure codes)
+- Tasks performed
+- Location verification (GPS or telephony)
+- Changes and adjustments
+- Exception acknowledgements
+
+## Visit Endpoint Purpose
+
+The Visit endpoint allows you to:
+- Submit new visit records
+- Update existing visits
+- Record call times (check-in/check-out)
+- Document adjusted times
+- Track tasks performed
+- Log visit changes and reasons
+- Acknowledge exceptions
+- Manage visit status (billable/omit)
+
+## Endpoint URL
+
+<CodeGroup>
+
+```bash Production
+POST https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1
+GET  https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1/status
+```
+
+```bash UAT
+POST https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1
+GET  https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1/status
+```
+
+</CodeGroup>
+
+## Key Concepts
+
+### Visit Components
+
+A visit consists of multiple segments:
+
+<CardGroup cols={2}>
+  <Card title="Visit General" icon="info-circle">
+    Core visit information (33 fields)
+    Employee, Client, Payer, Program, Times
+  </Card>
+  <Card title="Calls" icon="phone">
+    Check-in/check-out events (14 fields)
+    Mobile, Telephony, FVV, or Manual
+  </Card>
+  <Card title="Visit Changes" icon="pen-to-square">
+    Change log and reason codes (7 fields)
+    Required for adjustments and updates
+  </Card>
+  <Card title="Tasks" icon="list-check">
+    Services performed (3 fields per task)
+    Required for certain programs
+  </Card>
+</CardGroup>
+
+### Prerequisites
+
+<Warning>
+  **Critical**: Before submitting visits, you must have:
+</Warning>
+
+- ✅ Created the employee referenced in the visit
+- ✅ Created the client referenced in the visit
+- ✅ Both employee and client must exist in the same provider account
+
+If either is missing, the visit will be rejected.
+
+### Visit Timing
+
+Visits can be captured in different ways:
+
+<Tabs>
+  <Tab title="Mobile (GPS)">
+    Employee uses mobile app with GPS
+    - Captures latitude/longitude
+    - Requires MobileLogin
+    - Most accurate location verification
+  </Tab>
+  
+  <Tab title="Telephony">
+    Employee calls in/out via phone
+    - Captures phone number
+    - Requires TelephonyPIN
+    - Location based on phone number
+  </Tab>
+  
+  <Tab title="FVV (Fixed)">
+    Fixed Visit Verification device
+    - In-home device
+    - No GPS coordinates
+    - Location is client address
+  </Tab>
+  
+  <Tab title="Manual">
+    Manually entered times
+    - No device verification
+    - Requires VisitChanges segment
+    - Must include reason code
+  </Tab>
+</Tabs>
+
+## Data Structure
+
+```json
+{
+  "ProviderIdentification": {...},
+  "VisitOtherID": "VISIT001",
+  "SequenceID": 1,
+  "EmployeeIdentifier": "000012345",
+  "ClientIdentifier": "987654321",
+  "PayerID": "CTHH",
+  "PayerProgram": "HHI",
+  "ProcedureCode": "T1004",
+  "VisitTimeZone": "US/Eastern",
+  "BillVisit": true,
+  "Calls": [{
+    "CallDateTime": "2024-01-15T09:00:00Z",
+    "CallAssignment": "Time In",
+    "CallType": "Mobile",
+    ...
+  }, {
+    "CallDateTime": "2024-01-15T13:00:00Z",
+    "CallAssignment": "Time Out",
+    "CallType": "Mobile",
+    ...
+  }],
+  "Tasks": [{
+    "TaskID": "130",
+    "TaskRefused": false
+  }]
+}
+```
+
+## Workflow
+
+<Steps>
+  <Step title="Verify Prerequisites">
+    Ensure employee and client exist in the system
+  </Step>
+  
+  <Step title="Capture Visit Data">
+    Collect all visit information including times, location, and tasks
+  </Step>
+  
+  <Step title="Submit Visit">
+    POST visit data with SequenceID = 1
+  </Step>
+  
+  <Step title="Receive UUID">
+    API returns UUID for tracking
+  </Step>
+  
+  <Step title="Check Status">
+    Wait 5 minutes, then GET status
+  </Step>
+  
+  <Step title="Handle Results">
+    Process success or fix errors and resubmit
+  </Step>
+</Steps>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="Standard Visit (GPS)">
+    Employee uses mobile app:
+    1. Employee checks in via mobile app (GPS captured)
+    2. Performs services and tasks
+    3. Employee checks out via mobile app (GPS captured)
+    4. System submits visit with both calls
+  </Accordion>
+  
+  <Accordion title="Late Check-In/Early Check-Out">
+    Employee forgets to check in on time:
+    1. Employee checks in late (9:10 AM instead of 9:00 AM)
+    2. Supervisor adjusts times to actual (9:00 AM - 1:00 PM)
+    3. Submit visit with both Call times AND Adjusted times
+    4. Include VisitChanges segment with reason code
+  </Accordion>
+  
+  <Accordion title="Manual Entry">
+    Visit entered manually after the fact:
+    1. No device calls available
+    2. Enter actual visit times
+    3. Set CallType = "Manual"
+    4. Include VisitChanges segment with reason code
+    5. Provide detailed memo
+  </Accordion>
+  
+  <Accordion title="Visit Correction">
+    Need to update a previously submitted visit:
+    1. Retrieve original visit data
+    2. Make necessary changes
+    3. Increment SequenceID
+    4. Include VisitChanges segment
+    5. Resubmit complete visit
+  </Accordion>
+  
+  <Accordion title="Visit Cancellation">
+    Need to cancel a visit:
+    - **If no calls**: Set VisitCancelledIndicator = true
+    - **If calls exist**: Set BillVisit = false (cannot cancel)
+  </Accordion>
+</AccordionGroup>
+
+## Critical Business Rules
+
+<Warning>
+  **Time Validation Rules**
+</Warning>
+
+### Call Times Only
+- CallOut must be > CallIn
+- Both calls required for first submission
+
+### Adjusted Times Only
+- AdjOut must be > AdjIn
+
+### Both Call and Adjusted Times
+- AdjOut must be > AdjIn
+- AdjOut must be > CallIn
+- CallOut must be > AdjIn
+
+### Invalid Scenarios
+
+❌ **Calls BEFORE visit** (will be rejected):
+```json
+{
+  "AdjInDateTime": "2024-01-15T09:00:00Z",
+  "AdjOutDateTime": "2024-01-15T13:00:00Z",
+  "Calls": [
+    {"CallDateTime": "2024-01-15T08:30:00Z", "CallAssignment": "Time In"},
+    {"CallDateTime": "2024-01-15T08:45:00Z", "CallAssignment": "Time Out"}
+  ]
+}
+```
+
+❌ **Calls AFTER visit** (will be rejected):
+```json
+{
+  "AdjInDateTime": "2024-01-15T09:00:00Z",
+  "AdjOutDateTime": "2024-01-15T13:00:00Z",
+  "Calls": [
+    {"CallDateTime": "2024-01-15T13:30:00Z", "CallAssignment": "Time In"},
+    {"CallDateTime": "2024-01-15T13:45:00Z", "CallAssignment": "Time Out"}
+  ]
+}
+```
+
+## Conditional Requirements
+
+### When VisitChanges is REQUIRED
+
+- CallType = "Manual"
+- AdjInDateTime is provided
+- AdjOutDateTime is provided
+- Any visit update (SequenceID > 1)
+- Tasks are updated
+
+### When Tasks are REQUIRED
+
+Tasks must be provided for these programs:
+- **ABP** - Acquired Brain Injury Non-Clinical
+- **AUP** - Autism Professional
+- **CHP** - CT Home Care Program
+- **PCP** - Personal Care Assistant
+- **MHP** - Mental Health Program
+
+### Call Type Requirements
+
+| Call Type | Required Fields |
+|-----------|----------------|
+| **Mobile** | CallLatitude, CallLongitude, MobileLogin |
+| **Telephony** | TelephonyPIN, OriginatingPhoneNumber |
+| **FVV** | None (basic fields only) |
+| **Manual** | VisitChanges segment |
+
+## Field Count
+
+The Visit endpoint is the most complex:
+
+- **Visit General**: 33 fields
+- **Calls**: 14 fields per call (up to 2 calls)
+- **Visit Changes**: 7 fields
+- **Tasks**: 3 fields per task (repeatable)
+- **Exception Acknowledgement**: 2 fields per exception
+- **Total**: 50+ fields
+
+## Performance Considerations
+
+<Info>
+  **Best Practices for Visit Submissions**
+</Info>
+
+- **Batch Size**: 1-5,000 visits per transaction
+- **Frequency**: Submit in near real-time (within 24 hours)
+- **Dependencies**: Ensure employees and clients exist first
+- **Processing Time**: 30 seconds to 5 minutes
+- **Status Check**: Wait 5 minutes before checking
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Create Visit"
+    icon="plus"
+    href="/api-reference/visit/create"
+  >
+    Complete field documentation with all segments
+  </Card>
+  <Card
+    title="Check Status"
+    icon="magnifying-glass"
+    href="/api-reference/visit/status"
+  >
+    Query submission status
+  </Card>
+  <Card
+    title="Call Logic"
+    icon="clock"
+    href="/business-rules/call-logic"
+  >
+    Understand call time scenarios
+  </Card>
+  <Card
+    title="Business Rules"
+    icon="book"
+    href="/business-rules/visit-rules"
+  >
+    Detailed validation rules
+  </Card>
+</CardGroup>

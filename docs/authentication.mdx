@@ -1,0 +1,327 @@
+---
+title: 'Authentication'
+description: 'Learn how to authenticate your API requests'
+---
+
+## Authentication Methods
+
+The CT EVV API uses **HTTP Basic Authentication** with additional header requirements for account identification.
+
+## Required Headers
+
+Every API request must include three headers:
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header with Base64-encoded credentials
+  
+  Format: `Basic <base64(username:password)>`
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID (for single-account vendors)
+  
+  **OR** use `EntityGuid` header for multi-account vendors
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json` for all POST requests
+</ParamField>
+
+## Getting Credentials
+
+Contact your Sandata implementation manager to receive:
+
+<Steps>
+  <Step title="Request Credentials">
+    Provide your organization details and implementation timeline
+  </Step>
+  <Step title="Receive UAT Credentials">
+    You'll receive:
+    - Username
+    - Password
+    - Account ID or Entity GUID
+    - Provider ID (9-digit DSS-AVRS Medicaid ID)
+  </Step>
+  <Step title="Complete Testing">
+    Test your integration in the UAT environment
+  </Step>
+  <Step title="Receive Production Credentials">
+    After successful UAT, you'll receive production credentials
+  </Step>
+</Steps>
+
+## Creating the Authorization Header
+
+### Step 1: Format Credentials
+
+Combine your username and password with a colon:
+
+```
+username:password
+```
+
+### Step 2: Base64 Encode
+
+Encode the credentials string in Base64:
+
+<CodeGroup>
+
+```bash Bash
+echo -n "user@example.com:secret" | base64
+# Output: dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=
+```
+
+```javascript JavaScript
+const credentials = Buffer.from('user@example.com:secret').toString('base64');
+// Output: dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=
+```
+
+```python Python
+import base64
+
+credentials = base64.b64encode(b'user@example.com:secret').decode('utf-8')
+# Output: dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=
+```
+
+```csharp C#
+using System;
+using System.Text;
+
+var credentials = Convert.ToBase64String(
+    Encoding.UTF8.GetBytes("user@example.com:secret")
+);
+// Output: dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=
+```
+
+</CodeGroup>
+
+### Step 3: Add to Header
+
+Include the encoded credentials in the Authorization header:
+
+```
+Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=
+```
+
+## Complete Request Example
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1 \
+  -H "Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=" \
+  -H "Account: 12345" \
+  -H "Content-Type: application/json" \
+  -d '[{
+    "ProviderIdentification": {
+      "ProviderQualifier": "MedicaidID",
+      "ProviderID": "123456789"
+    },
+    "ClientFirstName": "John",
+    "ClientLastName": "Doe",
+    ...
+  }]'
+```
+
+```javascript JavaScript (Fetch)
+const response = await fetch(
+  'https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+      'Account': '12345',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify([{
+      ProviderIdentification: {
+        ProviderQualifier: 'MedicaidID',
+        ProviderID: '123456789'
+      },
+      ClientFirstName: 'John',
+      ClientLastName: 'Doe',
+      // ... additional fields
+    }])
+  }
+);
+```
+
+```python Python (Requests)
+import requests
+import base64
+
+credentials = base64.b64encode(b'user@example.com:secret').decode('utf-8')
+
+response = requests.post(
+    'https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1',
+    headers={
+        'Authorization': f'Basic {credentials}',
+        'Account': '12345',
+        'Content-Type': 'application/json'
+    },
+    json=[{
+        'ProviderIdentification': {
+            'ProviderQualifier': 'MedicaidID',
+            'ProviderID': '123456789'
+        },
+        'ClientFirstName': 'John',
+        'ClientLastName': 'Doe',
+        # ... additional fields
+    }]
+)
+```
+
+```csharp C# (HttpClient)
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+
+var client = new HttpClient();
+var credentials = Convert.ToBase64String(
+    Encoding.UTF8.GetBytes("user@example.com:secret")
+);
+
+client.DefaultRequestHeaders.Add("Authorization", $"Basic {credentials}");
+client.DefaultRequestHeaders.Add("Account", "12345");
+
+var payload = new[] {
+    new {
+        ProviderIdentification = new {
+            ProviderQualifier = "MedicaidID",
+            ProviderID = "123456789"
+        },
+        ClientFirstName = "John",
+        ClientLastName = "Doe",
+        // ... additional fields
+    }
+};
+
+var content = new StringContent(
+    JsonSerializer.Serialize(payload),
+    Encoding.UTF8,
+    "application/json"
+);
+
+var response = await client.PostAsync(
+    "https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1",
+    content
+);
+```
+
+</CodeGroup>
+
+## Multi-Account Vendors
+
+If you're sending data on behalf of multiple EVV accounts (e.g., MCO customers), use the `EntityGuid` header instead of `Account`:
+
+```bash
+curl -X POST https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1 \
+  -H "Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=" \
+  -H "EntityGuid: abc123-def456-ghi789" \
+  -H "Content-Type: application/json" \
+  -d '[...]'
+```
+
+<Info>
+  The EntityGuid is provided by Sandata during implementation for multi-account scenarios.
+</Info>
+
+## Authentication Errors
+
+### 401 Unauthorized
+
+Occurs when credentials are invalid or missing:
+
+```json
+{
+  "status": 401,
+  "message": "Unauthorized"
+}
+```
+
+**Solutions**:
+- Verify username and password are correct
+- Ensure credentials are properly Base64 encoded
+- Check that Authorization header is included
+
+### 403 Forbidden
+
+Occurs when Account/EntityGuid doesn't match credentials:
+
+```json
+{
+  "status": 403,
+  "message": "Account mismatch"
+}
+```
+
+**Solutions**:
+- Verify Account ID matches your credentials
+- Ensure you're using the correct EntityGuid for multi-account scenarios
+- Contact Sandata support if issues persist
+
+## Security Best Practices
+
+<Warning>
+  **Important Security Considerations**:
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Store Credentials Securely">
+    - Never hardcode credentials in source code
+    - Use environment variables or secure vaults
+    - Rotate credentials periodically
+    - Limit credential access to authorized personnel
+  </Accordion>
+
+  <Accordion title="Use HTTPS Only">
+    - All requests must use HTTPS (TLS 1.2+)
+    - Never send credentials over HTTP
+    - Validate SSL certificates
+  </Accordion>
+
+  <Accordion title="VPN Requirement">
+    - All requests must originate from within the USA
+    - Use a US-based VPN if necessary
+    - International requests will be rejected
+  </Accordion>
+
+  <Accordion title="Monitor Access">
+    - Log all API requests (without credentials)
+    - Monitor for unusual activity
+    - Implement rate limiting
+    - Set up alerts for failed authentication attempts
+  </Accordion>
+</AccordionGroup>
+
+## Testing Authentication
+
+Use this simple test to verify your authentication is working:
+
+```bash
+curl -X GET "https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1/wadl" \
+  -H "Authorization: Basic <your_encoded_credentials>" \
+  -H "Account: <your_account_id>"
+```
+
+If authentication is successful, you'll receive the WADL documentation.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Environments"
+    icon="server"
+    href="/environments"
+  >
+    Learn about UAT and Production environments
+  </Card>
+  <Card
+    title="Make Your First Request"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Start sending data to the API
+  </Card>
+</CardGroup>

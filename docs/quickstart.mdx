@@ -1,0 +1,237 @@
+---
+title: 'Quickstart'
+description: 'Start integrating with the CT EVV API in under 5 minutes'
+---
+
+## Setup Your Environment
+
+Before you begin, ensure you have:
+
+<AccordionGroup>
+  <Accordion icon="key" title="API Credentials">
+    Contact your Sandata implementation manager to receive:
+    - Username and password for Basic Authentication
+    - Account ID or Entity GUID
+    - Provider ID (DSS-AVRS Medicaid ID)
+  </Accordion>
+
+  <Accordion icon="globe" title="VPN Access">
+    **Important**: All API requests must originate from within the USA. International requests will be rejected.
+    
+    Ensure your systems are configured to send requests from US-based servers or through a US VPN.
+  </Accordion>
+
+  <Accordion icon="server" title="Environment URLs">
+    **UAT (Testing)**:
+    - Clients: `https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1`
+    - Employees: `https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1`
+    - Visits: `https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1`
+
+    **Production**:
+    - Clients: `https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1`
+    - Employees: `https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1`
+    - Visits: `https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1`
+  </Accordion>
+</AccordionGroup>
+
+## Make Your First Request
+
+<Steps>
+  <Step title="Create an Employee">
+    Employees must be created before they can be associated with visits.
+
+    ```bash
+    curl -X POST https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1 \
+      -H "Authorization: Basic <base64_encoded_credentials>" \
+      -H "Account: <your_account_id>" \
+      -H "Content-Type: application/json" \
+      -d '[{
+        "ProviderIdentification": {
+          "ProviderQualifier": "MedicaidID",
+          "ProviderID": "123456789"
+        },
+        "EmployeeQualifier": "EmployeeSSN",
+        "EmployeeIdentifier": "000012345",
+        "EmployeeOtherID": "EMP001",
+        "SequenceID": 1,
+        "EmployeeSSN": "000012345",
+        "EmployeeLastName": "Smith",
+        "EmployeeFirstName": "John",
+        "EmployeeEmail": "john.smith@example.com"
+      }]'
+    ```
+
+    <ResponseField name="Response" type="object">
+      ```json
+      {
+        "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+        "status": "SUCCESS",
+        "messageSummary": "The result for the input UUID is not ready yet. Please try again.",
+        "data": {
+          "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+          "account": "12345",
+          "message": "The result for the input UUID is not ready yet. Please try again.",
+          "reason": "Transaction Received."
+        }
+      }
+      ```
+    </ResponseField>
+  </Step>
+
+  <Step title="Check Processing Status">
+    Use the UUID from the response to check if processing completed.
+
+    ```bash
+    curl -X GET "https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status?uuid=7f6dcd1a-ec5e-4efd-a2d4-1049756016a5" \
+      -H "Authorization: Basic <base64_encoded_credentials>" \
+      -H "Account: <your_account_id>"
+    ```
+
+    <Info>
+      Wait at least 5 minutes before checking status. The UUID is available for 48 hours.
+    </Info>
+
+    <ResponseField name="Success Response" type="object">
+      ```json
+      {
+        "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+        "status": "SUCCESS",
+        "messageSummary": "All records updated successfully.",
+        "data": {
+          "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+          "account": "12345",
+          "message": "All records updated successfully.",
+          "reason": "Transaction Received."
+        }
+      }
+      ```
+    </ResponseField>
+  </Step>
+
+  <Step title="Create a Client">
+    Clients must exist before visits can be submitted.
+
+    ```bash
+    curl -X POST https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1 \
+      -H "Authorization: Basic <base64_encoded_credentials>" \
+      -H "Account: <your_account_id>" \
+      -H "Content-Type: application/json" \
+      -d '[{
+        "ProviderIdentification": {
+          "ProviderQualifier": "MedicaidID",
+          "ProviderID": "123456789"
+        },
+        "ClientQualifier": "ClientCustomID",
+        "ClientIdentifier": "987654321",
+        "ClientFirstName": "Jane",
+        "ClientLastName": "Doe",
+        "ClientMedicaidID": "987654321",
+        "MissingMedicaidID": "false",
+        "SequenceID": 1,
+        "ClientOtherID": "CLI001",
+        "ClientTimeZone": "US/Eastern",
+        "ClientCustomID": "987654321",
+        "ClientAddress": [{
+          "ClientAddressType": "Home",
+          "ClientAddressIsPrimary": "true",
+          "ClientAddressLine1": "123 Main Street",
+          "ClientCity": "Hartford",
+          "ClientState": "CT",
+          "ClientZip": "061011234"
+        }]
+      }]'
+    ```
+  </Step>
+
+  <Step title="Submit a Visit">
+    Now you can submit visit data with the employee and client you created.
+
+    ```bash
+    curl -X POST https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1 \
+      -H "Authorization: Basic <base64_encoded_credentials>" \
+      -H "Account: <your_account_id>" \
+      -H "Content-Type: application/json" \
+      -d '[{
+        "ProviderIdentification": {
+          "ProviderQualifier": "MedicaidID",
+          "ProviderID": "123456789"
+        },
+        "VisitOtherID": "VISIT001",
+        "SequenceID": 1,
+        "EmployeeQualifier": "EmployeeSSN",
+        "EmployeeIdentifier": "000012345",
+        "ClientIDQualifier": "ClientCustomID",
+        "ClientIdentifier": "987654321",
+        "ClientID": "987654321",
+        "PayerID": "CTHH",
+        "PayerProgram": "HHI",
+        "ProcedureCode": "T1004",
+        "VisitTimeZone": "US/Eastern",
+        "BillVisit": true,
+        "Calls": [{
+          "CallExternalID": "CALL001",
+          "CallDateTime": "2024-01-15T09:00:00Z",
+          "CallAssignment": "Time In",
+          "CallType": "Mobile",
+          "ProcedureCode": "T1004",
+          "MobileLogin": "john.smith@example.com",
+          "CallLatitude": 41.7658,
+          "CallLongitude": -72.6734
+        }, {
+          "CallExternalID": "CALL002",
+          "CallDateTime": "2024-01-15T13:00:00Z",
+          "CallAssignment": "Time Out",
+          "CallType": "Mobile",
+          "ProcedureCode": "T1004",
+          "MobileLogin": "john.smith@example.com",
+          "CallLatitude": 41.7658,
+          "CallLongitude": -72.6734
+        }]
+      }]'
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/authentication"
+  >
+    Learn more about authentication methods
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Explore all endpoints and parameters
+  </Card>
+  <Card
+    title="Business Rules"
+    icon="book"
+    href="/business-rules/overview"
+  >
+    Understand validation requirements
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="triangle-exclamation"
+    href="/concepts/error-handling"
+  >
+    Handle errors and rejections
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Warning>
+  **Important Considerations**:
+  - Always send employees and clients before visits
+  - Use incremental sequence IDs for each record update
+  - Submit visits in near real-time (within 24 hours)
+  - Wait 5 minutes between POST and status checks
+  - Keep transaction sizes between 1-5,000 records
+</Warning>

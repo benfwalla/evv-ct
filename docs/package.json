@@ -1,0 +1,22 @@
+{
+  "name": "ct-evv-api-docs",
+  "version": "1.0.0",
+  "description": "Connecticut EVV Vendor API Documentation",
+  "scripts": {
+    "dev": "mintlify dev",
+    "install-mintlify": "npm install -g mintlify",
+    "preview": "mintlify dev",
+    "deploy": "mintlify deploy"
+  },
+  "keywords": [
+    "evv",
+    "connecticut",
+    "api",
+    "documentation",
+    "healthcare",
+    "medicaid"
+  ],
+  "author": "Your Organization",
+  "license": "UNLICENSED",
+  "private": true
+}

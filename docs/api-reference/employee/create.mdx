@@ -1,0 +1,524 @@
+---
+title: 'Create/Update Employee'
+api: 'POST https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1'
+description: 'Submit employee (caregiver/worker) information to the EVV system'
+---
+
+## Overview
+
+The Employee endpoint receives information about caregivers who provide services. Employees must be successfully created before submitting visits.
+
+<Info>
+  **Important**: This endpoint handles both new employee creation and updates to existing employees. Use incrementing `SequenceID` values for updates.
+</Info>
+
+## Endpoint
+
+<CodeGroup>
+
+```bash Production
+POST https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1
+```
+
+```bash UAT
+POST https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1
+```
+
+</CodeGroup>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header
+  
+  Format: `Basic <base64(username:password)>`
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID (or use `EntityGuid` for multi-account)
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`
+</ParamField>
+
+## Request Body
+
+The request body must be a JSON array of employee objects. Each transaction can contain 1-5,000 employees.
+
+### Provider Identification (Required)
+
+<ParamField body="ProviderIdentification" type="object" required>
+  <Expandable title="properties">
+    <ParamField body="ProviderQualifier" type="string" required>
+      Type of provider identifier
+      
+      **Value**: `MedicaidID`
+    </ParamField>
+    
+    <ParamField body="ProviderID" type="string" required>
+      9-digit DSS-AVRS Medicaid ID
+      
+      **Format**: `#########` (9 digits)
+      
+      **Max Length**: 64 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Employee General Information (Required)
+
+<ParamField body="EmployeeQualifier" type="string" required>
+  Type of employee identifier being sent
+  
+  **Value**: `EmployeeSSN`
+  
+  **Note**: Must be mixed case exactly as shown
+  
+  **Max Length**: 20 characters
+</ParamField>
+
+<ParamField body="EmployeeIdentifier" type="string" required>
+  Employee identifier in SSN-based format
+  
+  **Format**: `#########` (4 generic leading digits + last 5 digits of SSN)
+  
+  **Example**: `000012345`
+  
+  **Max Length**: 9 characters
+  
+  **Note**: Must match `EmployeeSSN` value
+</ParamField>
+
+<ParamField body="EmployeeOtherID" type="string">
+  Unique employee identifier from your external system
+  
+  **Max Length**: 64 characters
+  
+  **Note**: Use your system's internal employee ID for easier tracking
+</ParamField>
+
+<ParamField body="SequenceID" type="integer" required>
+  Sequence number for this employee record
+  
+  **Rules**:
+  - First submission: Use 1
+  - Each update: Increment by 1 or more
+  - Can use timestamp format: `YYYYMMDDHHMMSS`
+  - Must be unique per employee
+  - Gaps are allowed
+  
+  **Max Length**: 16 digits
+  
+  **Example**: `1`, `2`, `3` or `20240115093045`
+</ParamField>
+
+<ParamField body="EmployeeSSN" type="string" required>
+  Employee's SSN in required format
+  
+  **Format**: `#########` (4 generic leading digits + last 5 digits of SSN)
+  
+  **Example**: `000012345`
+  
+  **Max Length**: 9 characters
+  
+  **Note**: Must match `EmployeeIdentifier` value
+</ParamField>
+
+<ParamField body="EmployeeLastName" type="string" required>
+  Employee's last name
+  
+  **Max Length**: 30 characters
+  
+  **Allowed Characters**:
+  - Alpha letters
+  - Hyphens (-)
+  - Periods (.)
+  - Apostrophes (')
+  
+  All other special characters will be rejected
+</ParamField>
+
+<ParamField body="EmployeeFirstName" type="string" required>
+  Employee's first name
+  
+  **Max Length**: 30 characters
+  
+  **Allowed Characters**:
+  - Alpha letters
+  - Hyphens (-)
+  - Periods (.)
+  - Apostrophes (')
+  
+  All other special characters will be rejected
+</ParamField>
+
+<ParamField body="EmployeeEmail" type="string">
+  Employee's email address
+  
+  **Max Length**: 64 characters
+  
+  **Conditional**: Required if available
+  
+  **Format Requirements**:
+  - Must contain "@" symbol
+  - Must have valid extension (.com, .org, etc.)
+  
+  **Example**: `john.smith@example.com`
+</ParamField>
+
+## Response
+
+### Success Response
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "The result for the input UUID is not ready yet. Please try again.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "The result for the input UUID is not ready yet. Please try again.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+<ResponseField name="id" type="string">
+  Unique UUID for this transaction
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  `SUCCESS` or `FAILED`
+</ResponseField>
+
+<ResponseField name="messageSummary" type="string">
+  Summary message about the request
+</ResponseField>
+
+<ResponseField name="data.uuid" type="string">
+  UUID to use for status checks
+</ResponseField>
+
+### Error Response
+
+```json
+{
+  "id": "ea76e9a1-9b29-4f3d-af1c-6b573eb29b76",
+  "status": "FAILED",
+  "messageSummary": "[1] Records uploaded, please check errors/warnings and try again.",
+  "data": [{
+    "ProviderIdentification": {
+      "ProviderID": "123456789",
+      "ProviderQualifier": "MedicaidID",
+      "ErrorCode": null,
+      "ErrorMessage": null
+    },
+    "EmployeeIdentifier": "000012345",
+    "EmployeeOtherID": "EMP001",
+    "SequenceID": 1,
+    "EmployeeQualifier": "EmployeeSSN",
+    "EmployeeLastName": "Smith",
+    "EmployeeFirstName": "John123",
+    "EmployeeEmail": "john.smith@example.com",
+    "ErrorCode": "-103",
+    "ErrorMessage": "ERROR: EmployeeFirstName contains invalid characters. Only letters, hyphens, periods, and apostrophes are allowed."
+  }]
+}
+```
+
+## Example Request
+
+```json
+[{
+  "ProviderIdentification": {
+    "ProviderQualifier": "MedicaidID",
+    "ProviderID": "123456789"
+  },
+  "EmployeeQualifier": "EmployeeSSN",
+  "EmployeeIdentifier": "000012345",
+  "EmployeeOtherID": "EMP001",
+  "SequenceID": 1,
+  "EmployeeSSN": "000012345",
+  "EmployeeLastName": "Smith",
+  "EmployeeFirstName": "John",
+  "EmployeeEmail": "john.smith@example.com"
+}]
+```
+
+## Complete Example with Multiple Employees
+
+```json
+[
+  {
+    "ProviderIdentification": {
+      "ProviderQualifier": "MedicaidID",
+      "ProviderID": "123456789"
+    },
+    "EmployeeQualifier": "EmployeeSSN",
+    "EmployeeIdentifier": "000012345",
+    "EmployeeOtherID": "EMP001",
+    "SequenceID": 1,
+    "EmployeeSSN": "000012345",
+    "EmployeeLastName": "Smith",
+    "EmployeeFirstName": "John",
+    "EmployeeEmail": "john.smith@example.com"
+  },
+  {
+    "ProviderIdentification": {
+      "ProviderQualifier": "MedicaidID",
+      "ProviderID": "123456789"
+    },
+    "EmployeeQualifier": "EmployeeSSN",
+    "EmployeeIdentifier": "000067890",
+    "EmployeeOtherID": "EMP002",
+    "SequenceID": 1,
+    "EmployeeSSN": "000067890",
+    "EmployeeLastName": "Johnson",
+    "EmployeeFirstName": "Mary",
+    "EmployeeEmail": "mary.johnson@example.com"
+  }
+]
+```
+
+## Business Rules
+
+<Warning>
+  **Critical Validation Rules**
+</Warning>
+
+### Required Fields
+
+The following fields are **always required**:
+- `ProviderIdentification` (complete object)
+- `EmployeeQualifier`
+- `EmployeeIdentifier`
+- `SequenceID`
+- `EmployeeSSN`
+- `EmployeeLastName`
+- `EmployeeFirstName`
+
+### SSN Format Rules
+
+- **EmployeeSSN** and **EmployeeIdentifier** must match exactly
+- Must be exactly 9 digits
+- Format: 4 generic leading digits + 5 SSN digits
+- Example: `000012345`
+- No dashes, spaces, or other characters
+
+### Name Validation
+
+- **EmployeeFirstName** and **EmployeeLastName** only allow:
+  - Letters (A-Z, a-z)
+  - Hyphens (-)
+  - Periods (.)
+  - Apostrophes (')
+- No numbers or other special characters
+- Max 30 characters each
+
+### Email Validation
+
+- If provided, must be valid format
+- Must contain "@" symbol
+- Must have extension (.com, .org, etc.)
+- Max 64 characters
+- Invalid email will cause rejection
+
+### Sequence Rules
+
+- First submission for an employee: SequenceID = 1
+- Each update: Increment SequenceID
+- Duplicate SequenceID will be rejected
+- Lower SequenceID than previously processed will be accepted but logged as historical
+
+## Code Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1 \
+  -H "Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=" \
+  -H "Account: 12345" \
+  -H "Content-Type: application/json" \
+  -d '[{
+    "ProviderIdentification": {
+      "ProviderQualifier": "MedicaidID",
+      "ProviderID": "123456789"
+    },
+    "EmployeeQualifier": "EmployeeSSN",
+    "EmployeeIdentifier": "000012345",
+    "EmployeeOtherID": "EMP001",
+    "SequenceID": 1,
+    "EmployeeSSN": "000012345",
+    "EmployeeLastName": "Smith",
+    "EmployeeFirstName": "John",
+    "EmployeeEmail": "john.smith@example.com"
+  }]'
+```
+
+```javascript JavaScript
+const employees = [{
+  ProviderIdentification: {
+    ProviderQualifier: 'MedicaidID',
+    ProviderID: '123456789'
+  },
+  EmployeeQualifier: 'EmployeeSSN',
+  EmployeeIdentifier: '000012345',
+  EmployeeOtherID: 'EMP001',
+  SequenceID: 1,
+  EmployeeSSN: '000012345',
+  EmployeeLastName: 'Smith',
+  EmployeeFirstName: 'John',
+  EmployeeEmail: 'john.smith@example.com'
+}];
+
+const response = await fetch(
+  'https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+      'Account': '12345',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(employees)
+  }
+);
+
+const result = await response.json();
+console.log('UUID:', result.data.uuid);
+```
+
+```python Python
+import requests
+import base64
+
+credentials = base64.b64encode(b'user@example.com:secret').decode('utf-8')
+
+employees = [{
+    'ProviderIdentification': {
+        'ProviderQualifier': 'MedicaidID',
+        'ProviderID': '123456789'
+    },
+    'EmployeeQualifier': 'EmployeeSSN',
+    'EmployeeIdentifier': '000012345',
+    'EmployeeOtherID': 'EMP001',
+    'SequenceID': 1,
+    'EmployeeSSN': '000012345',
+    'EmployeeLastName': 'Smith',
+    'EmployeeFirstName': 'John',
+    'EmployeeEmail': 'john.smith@example.com'
+}]
+
+response = requests.post(
+    'https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1',
+    headers={
+        'Authorization': f'Basic {credentials}',
+        'Account': '12345',
+        'Content-Type': 'application/json'
+    },
+    json=employees
+)
+
+result = response.json()
+print(f"UUID: {result['data']['uuid']}")
+```
+
+```csharp C#
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+
+var client = new HttpClient();
+var credentials = Convert.ToBase64String(
+    Encoding.UTF8.GetBytes("user@example.com:secret")
+);
+
+client.DefaultRequestHeaders.Add("Authorization", $"Basic {credentials}");
+client.DefaultRequestHeaders.Add("Account", "12345");
+
+var employees = new[] {
+    new {
+        ProviderIdentification = new {
+            ProviderQualifier = "MedicaidID",
+            ProviderID = "123456789"
+        },
+        EmployeeQualifier = "EmployeeSSN",
+        EmployeeIdentifier = "000012345",
+        EmployeeOtherID = "EMP001",
+        SequenceID = 1,
+        EmployeeSSN = "000012345",
+        EmployeeLastName = "Smith",
+        EmployeeFirstName = "John",
+        EmployeeEmail = "john.smith@example.com"
+    }
+};
+
+var content = new StringContent(
+    JsonSerializer.Serialize(employees),
+    Encoding.UTF8,
+    "application/json"
+);
+
+var response = await client.PostAsync(
+    "https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1",
+    content
+);
+
+var result = await response.Content.ReadAsStringAsync();
+Console.WriteLine(result);
+```
+
+</CodeGroup>
+
+## Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Missing EmployeeSSN | EmployeeSSN not provided | Add 9-digit SSN format |
+| Invalid Name Characters | Numbers or special chars in name | Remove invalid characters |
+| SSN Mismatch | EmployeeIdentifier ≠ EmployeeSSN | Ensure both fields match |
+| Duplicate Sequence | SequenceID already used | Increment SequenceID |
+| Invalid Email | Email missing @ or extension | Fix email format |
+| Missing First/Last Name | Name fields not provided | Add required name fields |
+
+## Next Steps
+
+After submitting employees:
+
+1. **Check Status**: Use the UUID to check processing status
+2. **Create Clients**: Submit client records (if not already done)
+3. **Submit Visits**: Create visits linking employees and clients
+
+<CardGroup cols={2}>
+  <Card
+    title="Check Status"
+    icon="magnifying-glass"
+    href="/api-reference/employee/status"
+  >
+    Query the status of your employee submission
+  </Card>
+  <Card
+    title="Create Client"
+    icon="user"
+    href="/api-reference/client/create"
+  >
+    Submit client information
+  </Card>
+  <Card
+    title="Submit Visit"
+    icon="calendar-check"
+    href="/api-reference/visit/create"
+  >
+    Create visits with employees and clients
+  </Card>
+  <Card
+    title="Business Rules"
+    icon="book"
+    href="/business-rules/employee-rules"
+  >
+    Understand validation rules
+  </Card>
+</CardGroup>

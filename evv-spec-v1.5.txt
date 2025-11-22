@@ -1,0 +1,3151 @@
+
+--- Page 1 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 1 
+Proprietary & Confidential       
+  
+ 
+ 
+ 
+CT-(DSS-DMHAS) 
+Home Health & Personal Care 
+EVV Vendor Specification v1.5 
+ 
+_______________________________________________________ 
+ 
+Sandata Technologies, LLC 
+220 Duffy Ave. Unit 266A 
+Hicksville NY 11801 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 2 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 2 
+Proprietary & Confidential       
+  
+ 
+ 
+ 
+Version History 
+Name Title Version Changes Date 
+Michael 
+Frosty 
+ 
+Technical Account 
+Manager 
+ 
+1.0 Initial Version – Home Health Expansion. Consolidated generic specifications  10/20/2022 
+Michael 
+Frosty 
+Technical Account 
+Manager 
+1.1 Updated expected field values and formats to further clarify field expectations. 
+Updated ClientID field in the Visit General segment to Required. Removed AUI 
+program code. Changed VisitTasks segment name to Tasks 
+02/28/2023 
+Michael 
+Frosty 
+Technical Account 
+Manager 
+1.2 Updated Client Payer Segment to Conditional from Required. Updated Reason Codes. 03/08/2023 
+Michael 
+Frosty 
+Technical Account 
+Manager 
+1.3 Added program AUI 06/12/2023 
+Michael 
+Frosty 
+Technical Account 
+Manager 
+1.4 Changed Provider ID max length to 64 from 50. Updated Calls - Conditional 
+description. Updated the ProcedureCode description to include revenue center code 
+in all locations. Update 9.1.1 and 9.1.2 description to include Revenue Center Codes 
+(RCCs). Changed the ClientPayer segment to Optional from Conditional. Removed the 
+Client Designee Segment. 
+01/10/2024 
+Michael 
+Frosty 
+Technical Account 
+Manager 
+1.5 Updated Document Name from CT-(DSS-HH) EVV Vendor Specification to CT- (DSS – 
+DMHAS) EVV Vendor Specification. Added Payer CTMHW and Programs ABP, AUP, 
+CHP, PCP & MHP. Added PCS Services and Tasks. Tasks segment TaskID description 
+updated to note the tasks are required for ABP, AUP, CHP, PCP & MHP. Added a link 
+for Task Listing by program on the CTDSS Agency Task list section. 
+2/14/2024 
+     
+     
+     
+     
+ 
+--- Page 3 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 3 
+Proprietary & Confidential       
+  
+This document and the information contained herein are confidential to and the property of Sandata Technologies, LLC. Unautho rized access, copying and 
+replication are prohibited. This document must not be copied in whole or part by any means, without the written authorization of Sandata Technologies, LLC. 
+This document should be used only for the intended purpose. 
+Contents  
+1 EVV Vendor Interface Transmission Guidelines .................................................................................................................................................................... 5 
+2 Overview..................................................................................................................................................................................................................................... 6 
+2.1 Intended Audience ................................................................................................................................................................................................................. 6 
+2.2 Transmission Frequency ....................................................................................................................................................................................................... 6 
+2.3 Transmission Limits ............................................................................................................................................................................................................... 7 
+2.4 Data Type Format Details ..................................................................................................................................................................................................... 7 
+3 Rejected Record Process ........................................................................................................................................................................................................ 10 
+3.1 New Record and Updates .................................................................................................................................................................................................... 11 
+4 Transmission Method .............................................................................................................................................................................................................. 11 
+4.1 Rules ...................................................................................................................................................................................................................................... 11 
+5 Sequencing ................................................................................................................................................................................................................................ 16 
+6 Message Acknowledgement (ACK) and Transaction ID ..................................................................................................................................................... 17 
+7 Response for Record Status .................................................................................................................................................................................................... 18 
+8.0 EVV- Element- Activity ....................................................................................................................................................................................................... 18 
+8.1 Client Data Endpoint ........................................................................................................................................................................................................... 19 
+8.2 Employee Data Endpoint .................................................................................................................................................................................................... 24 
+8.3 Visit Data Endpoint .............................................................................................................................................................................................................. 27 
+9 Appendices ............................................................................................................................................................................................................................... 39 
+9.1 Payers & Programs............................................................................................................................................................................................................... 39 
+--- Page 4 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 4 
+Proprietary & Confidential       
+  
+9.1.1 Non-Waiver Home Health Procedure Codes – Revenue Center Codes (RCCs) ....................................................................................................... 39 
+9.1.2 Waiver Home Health Procedure Codes – Revenue Center Codes (RCCs)................................................................................................................ 43 
+9.1.3 Mental Health Waiver Procedure Codes ...................................................................................................................................................................... 46 
+9.1.4 Acquired Brain Injury Non-Clinical Procedure Codes ................................................................................................................................................. 48 
+9.1.5 Acquired Brain Injury Non-Clinical (Optional) Procedure Codes .............................................................................................................................. 51 
+9.1.6 Autism Professional Procedure Codes .......................................................................................................................................................................... 52 
+9.1.7 Autism Professional (Optional) Procedure Codes ....................................................................................................................................................... 53 
+9.1.8 CT Home Care Program Non-Clinical Procedure Codes ............................................................................................................................................. 53 
+9.1.9 Personal Care Assistant Non-Clinical Procedure Codes ............................................................................................................................................. 57 
+9.2 Tasks ...................................................................................................................................................................................................................................... 59 
+9.3 Reason Codes ....................................................................................................................................................................................................................... 66 
+9.4 Exceptions............................................................................................................................................................................................................................. 67 
+9.5 Acronyms & Definitions ................................................................................................................................................................ ...................................... 68 
+9.6 Terminology .......................................................................................................................................................................................................................... 69 
+9.7 Field Level Errors ................................................................................................................................................................................................................. 70 
+9.8 Time Zone List ...................................................................................................................................................................................................................... 71 
+ 
+  
+--- Page 5 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 5 
+Proprietary & Confidential       
+  
+ 
+   
+This interface supplies the delivery mechanisms and the data layout/structure necessary to provide externally sourced EVV data to the Sandata 
+systems for processing. 
+Base Version 7.14     
+1 EVV Vendor Interface Transmission Guidelines 
+File Format JSON 
+File Delimiter not applicable 
+Headers not applicable 
+File Extension not applicable 
+File Encryption Delivery to occur over secure HTTPS connection 
+Control File not applicable 
+RESTful API Endpoint(s) 
+Client: UAT: https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1 
+Employee: UAT: https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1 
+Visit: UAT: https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1 
+Client: Prod: https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1 
+Employee: Prod: https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1 
+Visit: Prod: https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1 
+Payload Compression No compression of data during delivery 
+Delivery Mechanism Via RESTful API call 
+Delivery Frequency No less frequent than daily (at time decided by each vendor supplying the EVV data). Can be multiple times per 
+day at the vendor's discretion. 
+  
+       
+--- Page 6 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 6 
+Proprietary & Confidential       
+  
+  
+2     Overview 
+This specification is intended to document the requirements for using the Sandata Real Time Interface (part of the Open EVV Series of Interface) 
+for receiving information from 3rd party EVV Vendors into the Sandata Aggregator. This interface is also referred to as the Alternate EVV Data 
+Interface. An Alternate EVV Data Collection System will build one data pipe to the Aggregator and send synchronous data ‘packages’ per defined 
+provider agency. 
+ 
+2.1 Intended Audience 
+ 
+The intended audience of this document is: 
+Project Management and Technical teams at Sandata. 
+Project Management and Technical teams at designated Providers/Vendors who will be implementing this interface. 
+ 
+ 
+2.2 Transmission Frequency 
+ 
+For optimal system performance, it is recommended that visits should be sent in near real time and at least daily. It is expected that information is 
+sent as it is added/changed/deleted in the Alternate EVV Data Collection. 
+ System Note: Rejection responses will be delivered on a separate API call that is initiated by the third party–in near real time. 
+ 
+ 
+ 
+--- Page 7 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 7 
+Proprietary & Confidential       
+  
+ 
+2.3 Transmission Limits 
+ 
+A single transaction may contain from 1 to 5,000 records. A single record set would include all associated elements. If the group size exceeds the 
+maximum limit for the group, the complete group will be rejected. 
+During peak loads, records received may be queued and processed as resources permit. Other transactions received for the Provider ID will be 
+queued behind these until they are processed since they must be processed in the proper order. 
+Expected result of queued data is…Error Message: “The result for the input UUID is not ready yet. Please try again”. 
+Expected vendor action: Wait 5 minutes before attempting the GET status response. 
+ 
+2.4 Data Type Format Details 
+ 
+The user will send information in JSON or XML format. JSON and XML allow multiple “child” entities for a parent. 
+The format of the information sent must match exactly the format defined below and must be sent via web service using JSON or XML. Ultimately, 
+we support only three data types during transmission: string, number, and Boolean. The specification uses more additional data types to ensure that 
+data is received in the expected formats and appropriate record level editing can be incorporated. Except where numeric, the assumed JSON and 
+XML format should be string. The data type provided in the specification is based on the following field definitions. 
+Note that the format is case sensitive. All field names must be provided in EXACTLY the casing used in the definitions below. Sandata recommends 
+using RESTful services with JSON formatting. 
+ 
+ 
+ 
+ 
+--- Page 8 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 8 
+Proprietary & Confidential       
+  
+Data Type Description Example 
+DateTime The date and time are represented as a string with 
+the following format:  
+YYYY-MM-DDTHH:MM:SSZ 
+All times will be provided in UTC. 
+If time is not material, it will be provided as is 
+expected. 
+2016-12-20T16:10:28Z 
+Date 
+(Only Date) 
+The data is represented as a string with the 
+following format: 
+YYYY-MM-DD 
+Date only will be sent in UTC format. 
+2016-12-20 
+Timezone All time for tracking visits will be in UTC. 
+All time zone values will be derived from the 
+Internet Assigned Numbers Authority (IANA) time 
+zone database, which contains data that 
+represents the history of local time for locations 
+around the globe. It is updated periodically to 
+reflect changes made by political bodies to time 
+zone boundaries, UTC offsets, and daylight-saving 
+rules. 
+The time zone name expected in each transaction 
+is the actual time zone where the event took place. 
+i.e., US/Eastern. 
+A complete list of time zones can be found at: 
+https://www.iana.org/time- zones 
+See Appendix for the list of time zones. 
+--- Page 9 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 9 
+Proprietary & Confidential       
+  
+Data Type Description Example 
+String A string is a row of zero or more characters that 
+can include letters, numbers, or other types of 
+characters as a unit, not an array of 
+single characters. (e.g., plain text). 
+“This is a string” 
+ 
+Integer An integer is a numeric value without a decimal. 
+Integers are whole numbers and can be positive or 
+negative. 
+52110 (positive) 
+-87721 (negative) 
+Decimal A floating-point number is referred to as a 
+decimal. Can be positive or negative. 
+8221.231 (positive) 
+-71.214 (negative) 
+Boolean A logic predicate indicator that can be either true 
+or false. 
+true  
+false 
+ 
+ 
+ 
+  
+ 
+--- Page 10 ---
+                       
+PA-DHS EVV Vendor Specification v1.1      Page  | 10 
+Proprietary & Confidential       
+3    Rejected Record Process 
+ 
+When records are received, Sandata will return against each group a transaction ID and an ACK (acknowledgment of receipt). This transaction ID can be 
+queried by the caller for status of the records in the transaction. This process will allow the provider/vendor to “GET status” on any of the records that 
+may have been rejected. The example below is for an employee record. 
+  
+ 
+ 
+ 
+ 
+
+--- Page 11 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 11 
+Proprietary & Confidential       
+  
+3.1  New Record and Updates 
+ 
+New records and updates for previously sent data should be provided via clients, employees, visits interfaces (‘data packages’). If a set of records is sent 
+(either client, employee, or visit), all associated applicable elements should be sent. Partial updates will be rejected. An update that deletes a record will 
+not actually remove information since Sandata will not physically delete information. The deleted record/s will no longer be visible on the application. 
+However, the record history will maintain the original data received. 
+ 
+4     Transmission Method 
+Sandata supports an SOA architecture. Sandata will provide an API for 3rd party vendors or agency’s internal IT organizations to utilize. Sandata will 
+provide sample JSON format information (Java equivalent to XML), as well as the WADL (JSON equivalent of the WSDL) to those parties developing the 
+interface. This specification will include the REST endpoints needed to request status on record acceptance /rejection. 
+ 
+4.1 Rules 
+ 
+The following rules apply to information received through this interface. For all rules that result in a rejection, it is expected that the issue will be 
+resolved in the Alternate Data Collection System and the information subsequently retransmitted. 
+ 
+There is one set of Interfaces per Sandata Provider Agency State ID. 
+ 
+There will be 3 independent types of data provided through the Alternate EVV interface: 
+• Clients 
+• Employees (Field Staff) 
+• Visit Information 
+Each will be sent individually but can be delivered through the same single connection. 
+ 
+ 
+ 
+ 
+--- Page 12 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 12 
+Proprietary & Confidential       
+  
+THE ALTERNATE DATA COLLECTION SYSTEM WILL BE RESPONSIBLE FOR: 
+ 
+Visit transmittals: Visits should be transmitted near real time. Actual payer frequency requirements may vary. Note that rejection responses will be 
+delivered as separate API calls initiated by the third party. Information should be sent for only those records that are added, changed, or deleted. This is 
+an incremental interface. Records which have not changed should not be resent. 
+ 
+Complete transmissions: 
+• When sending a client, all applicable elements and sub elements must be sent during each transmission. 
+• When sending an employee, all applicable elements and sub elements must be sent during each transmission. 
+• When sending a visit, all applicable elements and sub elements must be sent during each transmission. 
+ 
+Call matching: Calls received regardless of the collection method used by the Alternate Data Collection System are received together into a complete 
+visit by the Aggregator, per the specification. Sandata will not attempt to match or rematch the visits received. 
+  
+Data quality: All data will be accepted from third party data “as is,” including any calculated fields. 
+ 
+Latitude and Longitude: Alternate EVV Data Collection Systems are responsible for providing latitude and longitude on all client addresses provided. 
+Latitude and longitude must be provided for both the visit start and visit end time, assuming it is collected via a GPS-enabled device. 
+ 
+Assigning sequence numbers: For each of the 3 types of records (client, employee, visit), the Alternate Data Collection System will be responsible for 
+assigning sequence numbers for each interface to ensure that updates are applied in the appropriate sequence. If a record is rejected, an incremented 
+sequence is expected on the next transmission of that record set. Sequence numbers are per unique record (client, employee, visit) and record set 
+(modifications to the same client, employee, visit). For example, the first time a particular client is sent, the sequence would be set to 1. The second time 
+that same client is sent, the sequence would be set to 2, etc. 
+ 
+Ability to correct defined exceptions: Exceptions must be corrected using the standard set of reason codes provided by Payer/State. Some of the 
+defined reason codes require additional text to provide additional information; this information must also be sent as part of this interface. 
+ 
+Change log transmission: Changes made to all visit information must be fully logged, and the log information must be transmitted as part of the visit 
+record, as applicable. The log must be completed in the VisitChanges segment. 
+ 
+Standard date/time format: All dates and times provided must be sent in UTC (Coordinated Universal Time) format in GMT. 
+ 
+--- Page 13 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 13 
+Proprietary & Confidential       
+  
+GENERAL PROCESSING RULES: 
+ 
+If a record is received and any required data is missing, malformed, or incomplete as defined in the specification, the record will be rejected or set to 
+default values in accordance with the detailed specifications. 
+ 
+If an optional field is provided with an invalid value (one not listed in this specification), the field will be set to the default value, null and/or rejected, 
+unless otherwise specified in this specification. 
+ 
+If text (string) field length is longer (>/greater than) than the maximum allowed for that field value, unless otherwise noted, the field will be truncated to 
+the maximum length specified for that field. 
+ 
+Any record without a sequence number will be rejected. Sequence numbers are per unique record (client, employee, visit). For example, the first time a 
+particular client is sent, the sequence would be set to 1. The second time the same client is sent, the sequence would be set to 2, etc. 
+ 
+Records will be processed in the order received using the assigned sequence number. 
+  
+If the record is received with a sequential number that is less than the one already processed, the data will be rejected with error “Version number is 
+duplicated or older than current.” The vendor must correct the SequenceID and resend the data. 
+ 
+Header information as determined for the payer and program must be included in each transmission for each record (client, employee, visit), otherwise 
+the entire collection of records will be rejected. 
+ 
+CLIENT RULES: 
+The following represents a subset of the requirements for client information. Please see the Field Information section of this document for all applicable 
+rules. 
+ 
+If the client does not include at least 1 complete address (address line 1, city, state, zip code) the client will be rejected. 
+ 
+If the client does not include the defined unique identifier, the client will be rejected. 
+ 
+If the client does not include first name, last name and time zone, the client will be rejected. 
+ 
+ 
+--- Page 14 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 14 
+Proprietary & Confidential       
+  
+EMPLOYEE RULES: 
+The following represents a subset of the requirements for employee information. Please see the Field Information section of this document for all 
+applicable rules. 
+ 
+If SequenceID and Staff ID are not provided, the employee will be rejected. 
+ 
+If employee first name and last name are not provided, the employee will be rejected. 
+ 
+VISIT RULES: 
+Clients and Employees must be sent before visits, to ensure they exist in the Sandata system at the time of visit receipt. 
+ 
+No Client Provided - To allow the Aggregator to determine if the visit is for a Payer/State client, the visit must include a client. If a visit does not include 
+a client, the complete visit will be rejected. 
+ 
+Invalid/Unknown Client Provided - To allow the Aggregator to determine if the visit is for a Payer/State Client, the visit must include a valid client 
+associated with the payer. If a visit includes a client that is unknown to Sandata (has not been received and accepted), the complete visit record will be 
+rejected. 
+  
+No Employee Provided / Invalid or Unknown Employee Provided - If a visit does not include an employee (visit record send without an employee 
+associated), The visit will be rejected as ‘Worker not found’. The data will not process with an ‘Unknown Employee’ exception in Aggregator. 
+ 
+The Alternate EVV system is expected to be able to handle a visit that crosses calendar days. 
+ 
+A visit can only be cancelled if it does not have any calls associated with it or any adjusted times. If a visit has calls but is being cancelled in the source 
+EVV system, the “Bill Visit” indicator should be set to False to indicate that the visit should be disregarded for billing purposes. The visit status will be set 
+to Omit by the Aggregator. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 15 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 15 
+Proprietary & Confidential       
+  
+ 
+The following rules apply to the dates and times provided for the visit: 
+Date and Time Exists for the Following:  
+Rule 
+Call In Call Out Adjusted In Adjusted 
+Out 
+x x   Call Out must be > Call In 
+ 
+Otherwise record 
+rejected. 
+Superseded by Adj. In Superseded by Adj. Out x x Adj. Out must be > Adj. In 
+ 
+Otherwise record 
+rejected. 
+x Superseded by Adj. Out  x Adj. Out must be > Call In 
+ 
+Otherwise record 
+rejected. 
+Superseded by Adj. In x x  Call Out must be > Adj. In 
+ 
+Otherwise record 
+rejected. 
+ 
+Upon receipt, Sandata will calculate all configured Payer/Program exceptions and apply those exceptions as applicable. For those exceptions that 
+may be recalculated over the life of the visit, these exceptions will be calculated as appropriate. 
+ 
+It is assumed that there are some exceptions that cannot be “fixed” in the Alternate Data Collection System by their nature. They are configured for 
+the Payer/State program as requiring acknowledgement by the system user. One of the included visit elements provides the ability for the user to 
+--- Page 16 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 16 
+Proprietary & Confidential       
+  
+send their acknowledgement. These exceptions require attestation that the exception has been reviewed/acknowledged in the system along with 
+the appropriate reason code and attestation that appropriate documentation exists. Exceptions are specific to a given Payer/Program and will be 
+noted in the associated appendix. 
+ 
+Upon receipt, Sandata will calculate and apply visit status as defined for the Payer/Program. 
+ 
+The Alternate Data Collection System will be expected to send a reason code and optionally the defined resolution code if it applies to the payer. 
+Based on the definitions of the reason codes, some reason codes require additional information explaining the change. If additional information is 
+required, the alternate data collection system must collect the information and include it when transmitting the visit to Sandata. 
+ 
+5 Sequencing 
+The SequenceID on all three types of records (clients, employees, visits) should be independent per record and should be incremented each time any 
+record is sent. The Sequence ID will be used to ensure that a record is processed only once and that the most current information is used for 
+reporting and claims processing. In the event a visit update is not accepted (rejected), the SequenceID on that transmission should not be reused. 
+The next update should increment to the next number in the sequence. Failure to do so will cause the new record to be rejected as a duplicate. 
+Sequence Rules: 
+• If the latest SequenceID is greater than the highest value previously received, the record set will not be rejected. i.e., latest SequenceID = 5, 
+previous SequenceID = 4 Record accepted, and latest record is displayed. 
+• If the latest SequenceID is less than the value previously received, and the record has not yet been processed, it will be accepted and recorded as 
+historical information. i.e., latest SequenceID 
+= 8, previous SequenceID = 10 Record accepted, and latest record is still SequenceID = 10. 
+• If the Sequence ID is equal to a value previously received, it will be rejected. i.e., latest SequenceID = 15, previous SequenceID = 15 Record 
+rejected. 
+• Gaps in sequence will be allowed. 
+--- Page 17 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 17 
+Proprietary & Confidential       
+  
+ 
+ 
+6 Message Acknowledgement (ACK) and Transaction ID 
+ 
+Index Column Name Description Max 
+Length 
+Type 
+1 AgencyIdentifier Unique identifier for the agency. 10 String 
+2 ProviderID Unique identifier for the agency. 64 String 
+3 TransactionID Unique identifier for the request 
+generated by the payer. 
+50 String 
+4 Reason Default and only value provided: 
+“Transaction Received” 
+250 String 
+ 
+
+--- Page 18 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 18 
+Proprietary & Confidential       
+  
+ 
+ 
+7 Response for Record Status 
+ 
+Index Column Name Description Max 
+Length 
+Type 
+1 AgencyIdentifier Unique identifier for the agency. 10 String 
+2 ProviderID Unique identifier for the agency. 64 String 
+3 RecordType Type of record that was rejected. 
+Values: Client, Employee, Visit 
+10 String 
+4 RecordOtherID Value of the record identifier 50 String 
+5 Reason Default and only value provided: 
+“Transaction Received” 
+250 String 
+ 
+ 
+ 
+ 
+8.0 EVV- Element- Activity 
+The following element includes the schedule information for the client. This includes both the client and employee information. Both client and 
+employee must exist in the system for a schedule to be successfully uploaded or it must be part of the same transaction set. 
+Note: Conditional means if it is present then it is required. 
+ 
+--- Page 19 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 19 
+Proprietary & Confidential       
+  
+8.1 Client Data Endpoint 
+This endpoint receives information regarding the individual member/beneficiary (known here as the 'Client') that receives care as part of the 
+visit. Please note - the Client record must be successfully delivered and loaded PRIOR to the delivery of the Visit information, or else the visit will 
+be rejected due to “Client not found”. 
+ 
+Index Element Description Max 
+Length Type Required? Expected Value 
+ProviderIdentification – Required 
+1 ProviderQualifier Unique identifier for the provider as 
+determined by the program 
+definition. 
+20 String Yes MedicaidID  
+2 ProviderID 
+ 
+ 
+ 
+ 
+Unique identifier for the agency. ID 
+type must match to the 
+ProviderQualifier value being 
+passed for Provider validation and 
+lookup. 
+64 String Yes 
+ 
+ 
+ 
+DSS-AVRS ID (MedicaidID) 
+Example: #########  
+(9 Digits) 
+ClientGeneralInformation - Required 
+1 ClientQualifier Value being sent to uniquely 
+identify the client. Should be the 
+same as the value used by the Payer 
+if a client feed is provided by the 
+payer. 
+20 String Yes ClientCustomID 
+2 ClientIdentifier Unique client identifier used by the 
+state to reference the member data 
+across all Medicaid activities. This 
+value will need to be the same as 
+the ClientCustomID. 
+64 String Yes MedicaidID (9-digit ID) 
+Format: ######### 
+3 ClientFirstName Client’s First Name. 30 String Yes Client’s First Name 
+(See Field Level Errors in 
+Appendix 9.7) 
+4  ClientMiddleInitial Client’s Middle Initial. 1 String Optional Client’s Middle Initial  
+--- Page 20 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 20 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+5  ClientLastName Client’s Last Name. 30 String Yes Client’s Last Name 
+(See Field Level Errors in 
+Appendix 9.7) 
+6 ClientMedicaidID Unique ID provided by the State 
+Medicaid program to the client. 
+64 String Yes MedicaidID (9-digit ID) 
+Format: ######### 
+7 MissingMedicaidID Indicator that a patient is a 
+newborn. 
+ 5 String Optional “false” 
+8 SequenceID The Third-Party EVV visit sequence 
+ID. Sandata recommends this be a 
+timestamp (to the second) to ensure 
+the order of the client data updates. 
+For HHA System users, the value is 
+the system-generated key. 
+16 Integer Yes Third-Party EVV Vendor Visit 
+Sequence ID.  
+If TIMESTAMP is used: 
+YYYYMMDDHHMMSS 
+Numbers only; no other 
+characters.  
+9 ClientOtherID Additional client user-defined ID. 
+This value is used to match the 
+client to an existing record during 
+import. 
+24 String Optional Primary Client Key from the 
+EVV Vendor System (No 
+Special Characters) 
+10 ClientTimeZone Client’s primary time zone. 
+Depending on the program, this 
+value may be defaulted or 
+automatically calculated. 
+64 String Yes "US/Eastern" 
+11 ClientCustomID Unique client identifier used by the 
+state to reference the member data 
+across all Medicaid activities. This 
+value will need to be the same as 
+the ClientIdentifier. 
+24 String Yes MedicaidID (9-digit ID) 
+Format: ######### 
+12 ClientSSN Client’s social security number. Not 
+required if ClientOtherID is sent.  
+9 Integer Optional Last 5-digits of SSN 
+Format: 0000##### 
+--- Page 21 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 21 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+13 Coordinator The staff member is assigned to the 
+client in a specific agency as the 
+coordinator for an employee. 
+    Do not 
+provide 
+Do not provide 
+15 ProviderAssentContPlan Indicator to capture provider’s 
+assent that the member’s 
+contingency plan provided will be 
+reviewed with the member every 
+90 days and documentation will be 
+provided. 
+    Do not 
+provide 
+Do not provide 
+ClientAddress – Required 
+Required segment. At least one record for each client is required for the program. Multiple addresses are accepted with different address types. 
+1 ClientAddressType This field designates the client 
+address type. Note that multiple of 
+the same type can be provided. 
+Default to Other if not available. 
+12 String Yes "Home"| "Business" | "Other" 
+2 ClientAddressIsPrimary One address must be designated as 
+primary by sending true. Additional 
+addresses will be false. 
+5 String Yes "true" | "false" 
+ 
+3  ClientAddressLine1 Street address line 1 associated 
+with this address. PO Box may be 
+used for Safe at Home participants. 
+PO Box may impact GPS reporting. 
+30 String Yes Address Line 1 
+4 ClientAddressLine2 Street address line 2 associated 
+with this address. 
+30 String Optional Address Line 2 
+5 ClientCounty County associated with this 
+address. 
+25 String Optional County 
+6 ClientCity City associated with this address. 30 String Yes City 
+7 ClientState State associated with this address. 2 String Yes Two-character standard state 
+abbreviation.  
+(Must be capitalized) 
+--- Page 22 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 22 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+8 ClientZip Zip Code associated with this 
+address. If additional 4 digits are not 
+known, provide zeros. 
+9 String Yes Zip Code 
+Format: ######### 
+9 ClientAddressLongitude Calculated for each address.     Do not 
+provide 
+Do not provide 
+10 ClientAddressLatitude Calculated for each address.     Do not 
+provide 
+Do not provide 
+ClientPayerInformation – Optional 
+1 PayerID Sandata EVV assigned ID for the 
+payer. Payer ID is determined 
+during the implementation process. 
+64 String Yes Valid Values = CTDSS, CTHH, 
+CTMHW 
+2 PayerProgram If applicable, the program to which 
+this visit belongs. 
+9 String Yes Valid Values = HHI, ABI, AUI, 
+CHI, PCI, ABP, AUP, CHP, PCP, 
+MHP 
+3 ProcedureCode This is the billable Procedure 
+Code/Revenue Center Code which 
+would be mapped to the associated 
+service. 
+5 String Yes Billing Service code as listed.  
+See Appendix 9.1.1 
+4 Modifier1 Modifier for the Procedure 
+Code/Revenue Center Code (when 
+applicable). Up to 4 modifiers are 
+allowed. It is required to apply 
+modifier values in the order 
+specifically listed in the Appendix.  
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+See Appendix 9.1.1 
+--- Page 23 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 23 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+5 Modifier2 Modifier for the Procedure 
+Code/Revenue Center Code 
+procedure code (when applicable). 
+Up to 4 modifiers are allowed. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix.  
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+See Appendix 9.1.1 
+6 Modifier3 Modifier for the Procedure 
+Code/Revenue Center Code 
+procedure code (when applicable). 
+Up to 4 modifiers are allowed. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix.  
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+See Appendix 9.1.1 
+7 Modifier4 Modifier for the Procedure 
+Code/Revenue Center Code 
+procedure code (when applicable). 
+Up to 4 modifiers are allowed. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix.  
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided.  
+See Appendix 9.1.1 
+8 ClientPayerID Unique identifier sent by the payer.     Do not 
+provide 
+Do not provide 
+9 ClientStatus The client’s status. Provide the 2-
+digit code including the 0. 
+2 String Yes String match = "02" | "04"  
+Available values: 02 = Active  
+04 = Inactive 
+10 EffectiveStartDate The effective start date for the 
+client payer information. 
+10 Date Optional Date 
+Format: YYYY-MM-DD 
+--- Page 24 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 24 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+11 EffectiveEndDate The effective end date for the client 
+payer information. 
+10 Date Optional Date 
+Format: YYYY-MM-DD 
+12 ClientEligibilityDateBegin Client eligibility end date. This field 
+is optional if ClientStatus is sent. 
+    Do not 
+provide 
+Do not provide 
+13 ClientEligibilityDateEnd Client eligibility begin date. This 
+field is optional if ClientStatus is 
+sent.  
+    Do not 
+provide 
+Do not provide 
+ClientPhone – Conditional 
+The fields in this segment marked as required “Yes” are only needed when this segment is sent. 
+1 ClientPhoneType This is the client phone type. Note 
+that multiple of the same type can 
+be provided. 
+ 
+  
+12 String Yes "Home" | "Mobile" | "Business" 
+| "Other"  
+2 ClientPhone Client phone number including area 
+code. 
+ 
+ 
+  
+10 String Yes Client Phone Number 
+Format: ##########  
+ 
+8.2   Employee Data Endpoint 
+This endpoint receives information regarding the individual caregiver (known here as the 'Employee') that delivered the actual care to the 
+individual as part of the visit. Please note- the Employee must be successfully delivered and loaded PRIOR to the delivery of the Visit information, 
+or else the visit will be rejected due to 'Worker not found'. 
+ProviderIdentification – Required 
+1 ProviderQualifier Identifier being sent as the unique 
+identifier for the provider. 
+20 String Yes MedicaidID  
+--- Page 25 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 25 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+2 ProviderID Unique identifier for the agency. ID 
+type must match to the 
+ProviderQualifier value being 
+passed for Provider validation and 
+lookup.   
+64 String Yes  DSS-AVRS ID(MedicaidID) 
+Example: #########  
+(9 Digits) 
+EmployeeGeneralInformation – Required 
+Required data in the body of the transmission. This segment provides the basic information about the employee. 
+1 EmployeeQualifier Descriptive reference of the value 
+being sent to uniquely identify the 
+employee. 
+20 String Yes EmployeeSSN  
+2 EmployeeIdentifier Employee identifier identified by 
+EmployeeQualifier. This value must 
+equal the EmployeeIdentifier 
+provided in the Visit transmission. 
+Employee Identifier is to be 
+provided in one of the three 
+acceptable formats. The 
+EmployeeIdentifier format must be 
+consistent in both the 
+EmployeeGeneral and VisitGeneral 
+segments. 
+Santrax Agency Formats need to be 
+Reviewed.  
+9 String Yes Format:  
+4 generic leading digits & 
+Last 5-digits of SSN  
+Format: ######### 
+ 
+  
+3 EmployeeOtherID Unique employee identifier in the 
+external system, if any. 
+64 String Optional Vendor Supplied value based 
+on Vendor’s solutions.  Unique 
+ID for each employee. 
+4 SequenceID The Third-Party EVV visit sequence 
+ID to which the change applied.   
+16 Integer Yes Third-Party EVV Visit 
+Sequence ID. 
+ If TIMESTAMP is used: 
+YYYYMMDDHHMMSS 
+--- Page 26 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 26 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+Numbers only; no other 
+characters. 
+5 EmployeeSSN Employee Social Security Number. 9 String Yes Format: 
+4 generic leading digits & 
+Last 5-digits of SSN  
+Format: ######### 
+6 EmployeeLastName Employee’s last name. 30 String Yes Employee’s Last Name 
+(See Field Level Errors in 
+Appendix 9.7) 
+7 EmployeeFirstName Employee’s first name. 30 String Yes Employee’s First Name 
+(See Field Level Errors in 
+Appendix 9.7) 
+8 EmployeeEmail Employee’s email address. 64 String Conditional Employee’s Email Address 
+Format: “@" and extension 
+(.xxx) are required to validate 
+as an email address 
+9 EmployeeManagerEmail Email of the employee’s manager.     Do not 
+provide 
+Do not provide 
+10 EmployeeHireDate Employee’s Date of Hire.   Do not 
+provide 
+Do not provide 
+11 EmployeeEndDate Employee’s HR recorded end date.     Do not 
+provide 
+Do not provide 
+12 EmployeeAPI Employee client’s alternate 
+provider identifier or Medicaid ID.  
+    Do not 
+provide 
+Do not provide 
+13 EmployeePosition Values for payer/state programs to 
+be determined during 
+implementation. If multiple 
+positions, send primary.  
+    Do not 
+provide 
+Do not provide 
+ 
+--- Page 27 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 27 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+ 
+8.3 Visit Data Endpoint 
+This endpoint receives the information regarding the EVV visits themselves- including all individual components of the visit, and 
+corrections/changes to the visits over time. Please Note: The visit information must be loaded AFTER the client and the employee associated 
+with the visit have been successfully loaded, or else the visit record will be rejected with appropriate error description. 
+ProviderIdentification – Required 
+1 ProviderQualifier Identifier being sent as the unique 
+identifier for the provider. 
+20 String Yes MedicaidID   
+2 ProviderID Unique identifier for the agency. ID 
+type must match to the 
+ProviderQualifier value being 
+passed for Provider validation and 
+lookup.  
+64 String Yes DSS-AVRS ID(MedicaidID) 
+Example: #########  
+(9 Digits) 
+VisitGeneralInformation – Required 
+Required segment provides the base data regarding an EVV visit. If a visit is changed (corrections, alterations, updates) over time, the same visit 
+may be delivered multiple times, each sharing the same ‘VisitOtherID’, but each change represented with a different Sequence ID- ascending 
+over time- to allow the state's Aggregator system to keep the changes ordered appropriately. Each update requires a ‘VisitChanges’ segment. 
+1 VisitOtherID Visit identifier in the external 
+system. 
+50 String Yes Visit Identifier 
+2 SequenceID The Third-Party EVV visit sequence 
+ID to which the change applied. 
+For HHA System users, the value is 
+the system-generated key. 
+16 Integer Yes Third-Party EVV Visit 
+Sequence ID 
+If TIMESTAMP is used: 
+YYYYMMDDHHMMSS 
+Numbers only; no other 
+characters. 
+3 EmployeeQualifier Descriptive reference of the value 
+being sent to uniquely identify the 
+employee. 
+20 String Yes EmployeeSSN  
+--- Page 28 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 28 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+4 EmployeeOtherID Unique employee identifier in the 
+external system, if any. 
+The EmployeeOtherID format must 
+be consistent in both the 
+EmployeeGeneral and VisitGeneral 
+segments. 
+  
+64 String Optional Vendor Supplied value based 
+on Vendor’s solutions. Unique 
+ID for each employee. 
+ 
+  
+5 EmployeeIdentifier Employee identifier identified by 
+EmployeeQualifier. This value must 
+equal the EmployeeIdentifier 
+provided in the Visit transmission. 
+Employee Identifier is to be 
+provided in one of the three 
+acceptable formats. The 
+EmployeeIdentifier format must be 
+consistent in both the 
+EmployeeGeneral and VisitGeneral 
+segments.  
+9 String Yes Format: 
+4 generic leading digits & 
+Last 5-digits of SSN  
+Format: ######### 
+ 
+ 
+  
+6 GroupCode GroupCode applies to visits for a 
+single caregiver that provides 
+services to multiple clients or 
+multiple caregivers providing 
+service to a single client that occur 
+during the same time span. It is used 
+to reassemble all members of the 
+group and will impact state 
+reporting and analytics for 
+overlapping visits. Use only if this 
+functionality is provided by the 
+Alternate EVV vendor. 
+6 String Optional GroupCode 
+7 ClientIDQualifier Describes what type of identifier is 
+being sent to identify the client. 
+20 String Yes ClientCustomID 
+--- Page 29 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 29 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+8 ClientIdentifier Unique client identifier used by the 
+state to reference the member data 
+across all Medicaid activities. 
+64 String Yes MedicaidID (9-digit ID) 
+Format: ######### 
+9 ClientID Unique client identifier used by the 
+state to reference the member data 
+across all Medicaid activities. 
+64 String Yes MedicaidID (9-digit ID) 
+Format: ######### 
+10 ClientOtherID Additional client user-defined ID. 
+This value is used to match the 
+client to an existing record during 
+import. 
+24 String Optional Vendor System Client ID 
+11 VisitCancelledIndicator Set to false as the default. Set to 
+true if a future scheduled visit 
+previously sent and accepted with 
+NO “CallIn”, “CallOut” or “Adjusted” 
+times to be cancelled / deleted. Can 
+only be applicable to future 
+schedules.  
+5 String Conditional "true" | "false" 
+ 
+Can only be true or false. 
+12 PayerID Sandata EVV assigned ID for the 
+payer. 
+64 String Yes Valid Values = CTDSS, CTHH, 
+CTMHW 
+13 PayerProgram If applicable, the program to which 
+this visit belongs. 
+9 String Yes Valid Values = HHI, ABI, AUI, 
+CHI, PCI, ABP, AUP, CHP, PCP, 
+MHP 
+14 ProcedureCode  This is the billable Procedure 
+Code/Revenue Center Code which 
+would be mapped to the associated 
+service. 
+5 String Yes Billing Service code as listed.  
+See Appendix 9.1.1 
+--- Page 30 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 30 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+15 Modifier1 Modifier for the Procedure 
+Code/Revenue Center Code for the 
+837. Up to 4 of these are allowed. 
+Please consult specific program 
+requirements for exact usage. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix. 
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+See Appendix 9.1.1 
+16 Modifier2 Modifier for the Procedure 
+Code/Revenue Center Code for the 
+837. Up to 4 of these are allowed. 
+Please consult specific program 
+requirements for exact usage. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix. 
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+See Appendix 9.1.1 
+17 Modifier3 Modifier for the Procedure 
+Code/Revenue Center Code for the 
+837. Up to 4 of these are allowed. 
+Please consult specific program 
+requirements for exact usage. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix. 
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+See Appendix 9.1.1 
+18 Modifier4 Modifier for the Procedure 
+Code/Revenue Center Code for the 
+837. Up to 4 of these are allowed. 
+Please consult specific program 
+requirements for exact usage. It is 
+required to apply modifier values in 
+the order specifically listed in the 
+Appendix. 
+2 String Conditional Service Code modifiers as 
+listed in Appendix. Value must 
+match distinct values from 
+reference tables and modifiers 
+must be in order as defined. 
+Should be "NULL" if nothing is 
+provided. 
+ See Appendix 9.1.1 
+--- Page 31 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 31 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+19 VisitTimeZone Visit primary time zone. Depending 
+on the program, this value may be 
+defaulted or automatically 
+calculated. Should be provided if the 
+visit is occurring in a time zone 
+other than that of the client. 
+64 String Yes "US/Eastern" 
+20 AdjInDateTime Adjusted in date/time required only 
+if manually adjusted. The 
+VisitChanges segment is required. 
+20 DateTime Conditional  Adjusted In Date and Time 
+Format: 
+YYYY-MM-DDTHH:MM:SSZ 
+21 AdjOutDateTime Adjusted out date/time required 
+only if manually adjusted. The 
+VisitChanges segment is required. 
+20 DateTime Conditional  Adjusted Out Date and Time 
+Format: 
+YYYY-MM-DDTHH:MM:SSZ 
+22 BillVisit True for all visits to be billed. False 
+is only sent if the visit is not to be 
+considered for claims validation and 
+set to omit status. 
+5 String Yes "true" | "false" 
+23 Memo Associated free form text. 1024 String Optional Memo 
+24 ClientVerifiedTimes If the client did verify times in EVV 
+Vendor system set this value to 
+true. If the client did not verify 
+times in EVV Vendor system set this 
+value to false. 
+5 String Optional "true" | "false"  
+25 ClientVerifiedTasks If the client did verify tasks 
+performed in EVV Vendor system 
+set this value to true. If the client 
+did not verify tasks performed in 
+EVV Vendor system set this value to 
+false. 
+5 String Optional "true" | "false" 
+--- Page 32 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 32 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+26 ClientVerifiedService If the client did verify service 
+performed in EVV Vendor system 
+set this value to true. If the client 
+did not verify service performed in 
+EVV Vendor system set this value to 
+false. 
+5 String Optional "true" | "false" 
+27 ClientSignatureAvailable The actual signature will not be 
+transferred. The originating system 
+will be considered the system of 
+record. If the client signature is 
+captured in EVV Vendor system set 
+this value to true. If the client 
+signature is not captured in EVV 
+Vendor system set this value to 
+false. 
+5 String Optional "true" | "false" 
+28 ClientVoiceRecording The actual voice recording will not 
+be transferred. The originating 
+system will be considered the 
+system of record. If the client voice 
+recording is captured in EVV 
+Vendor system set this value to 
+true. If the client voice recording is 
+not captured in EVV Vendor system 
+set this value to false. 
+5 String Optional "true" | "false" 
+--- Page 33 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 33 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+29 ScheduleStartTime Activity/Schedule start date and 
+time. This field is generally required 
+but may be omitted if the schedule 
+denotes services that can happen at 
+any time within the service date. 
+Schedules are required in all cases. 
+Lack of a schedule is on an 
+exception basis. 
+    Do not 
+provide 
+Do not provide 
+30 ScheduleEndTime Activity/Schedule end date and 
+time. This field is generally required 
+but may be omitted if the schedule 
+denotes services that can happen at 
+any time within the service date. 
+Schedules are required in all cases. 
+Lack of schedule is on an exception 
+basis. 
+    Do not 
+provide 
+Do not provide 
+31 ContingencyPlan Indicator of member’s contingency 
+plan selected by member. Valid 
+values include (CODE should be 
+sent only): CODE- DescriptionCP01 
+- Reschedule within 2 HoursCP02 - 
+Reschedule within 24 HoursCP03 - 
+Reschedule within 48 HoursCP04 - 
+Next Scheduled VisitCP05 - Non-
+Paid Caregiver 
+    Do not 
+provide 
+Do not provide 
+32 Reschedule Indicator if schedule is a 
+“reschedule”. 
+    Do not 
+provide 
+Do not provide 
+33 HoursToBill Hours that are going to be billed.     Do not 
+provide 
+Do not provide 
+--- Page 34 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 34 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+34 HoursToPay If payroll is in scope for the payer 
+program, the hours to pay. 
+ 
+ 
+ 
+  
+    Do not 
+provide 
+Do not provide 
+Calls – Conditional 
+CallAssignment providing both “Time In” and “Time Out” are expected with the first instance of every visit, representing visit as captured. Visit 
+updates, with Adjusted times, can omit this segment, or send this segment exactly as originally sent. These segment details cannot be changed, 
+after submitted. 
+The fields in this segment marked as required “Yes” are only needed when this segment is sent. 
+Note that some vendor systems may not record some visit activity as calls. If this is the case, the call element can be omitted. Sandata will treat 
+visit information without calls as manually entered. 
+1 CallExternalID Call identifier in the external 
+system. 
+16 String Yes Call Identifier 
+2 CallDateTime Event date time. Must be to the 
+second. 
+20 DateTime Yes Call Date Time 
+Format: 
+YYYY-MM-DDTHH:MM:SSZ 
+3 CallAssignment This identifies the call assignment 
+type. 
+10 String Yes "Time In" | "Time Out" 
+4 GroupCode GroupCode applies to visits for a 
+single caregiver that provides 
+services to multiple clients or 
+multiple caregivers providing 
+service to a single client that occur 
+during the same time span. It is used 
+to reassemble all members of the 
+group and will impact state 
+reporting and analytics for 
+overlapping visits. Use only if this 
+functionality is provided by the 
+Alternate EVV vendor. 
+6 String Optional GroupCode 
+--- Page 35 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 35 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+5 CallType The type of device used to create 
+the event. Any call with GPS data 
+collected should be identified as 
+Mobile. FVV should be used for any 
+type of fixed visit verification 
+device.  
+VisitChanges segment is required 
+for CallType = Manual. 
+20 String Yes "Telephony" | "Mobile" | "FVV" 
+| "Manual" 
+6 ProcedureCode This is the billable Procedure 
+Code/Revenue Center Code which 
+would be mapped to the associated 
+service. 
+5 String Yes Procedure Code/Revenue 
+Center Code 
+See Appendix 9.1.1 
+7 ClientIdentifierOnCall If a client identifier was entered on 
+the call, this value should be 
+provided. 
+10 String Conditional Format: ######### 
+8 MobileLogin Login used if a mobile application is 
+in use for GPS calls. Required if 
+CallType = Mobile. 
+64 String Conditional Mobile Login of employee 
+9 CallLatitude GPS latitude recorded during the 
+event. Latitude has a range of -90 to 
+90 with a 15-digit precision. 
+Required for CallType = Mobile 
+19 Decimal Conditional Latitude Value 
+Decimal with sign if negative 2 
+primary.15digit precision. 
+Decimal format with  
+(-)XX.XXXXXXXXXXXXXXX 
+digits 
+10 CallLongitude GPS longitude recorded during the 
+event. Longitude has a range of -
+180 to 180 with a 15-digit precision. 
+Required for CallType = Mobile 
+20 Decimal Conditional Longitude Value 
+Decimal with sign if negative 3 
+primary.15digit precision. 
+Decimal format with 
+ (-)XXX.XXXXXXXXXXXXXXX 
+digits 
+--- Page 36 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 36 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+11 TelephonyPIN PIN for telephony.  
+Identification for the employee  
+using telephony.  
+Required if CallType = Telephony. 
+9 Integer Conditional Telephony PIN 
+Numbers only 
+12 OriginatingPhoneNumber Originating phone number for 
+telephony. Required if CallType = 
+Telephony. 
+10  String Conditional Originating Phone Number 
+No Special Characters 
+13 Location Specific values to be provided based 
+on the program. 
+ 
+  Do not 
+provide 
+Do not provide 
+  
+14 VisitLocationType Self-Reported visit location 
+REQUIRED for all call types. Value 
+to be sent should be “1 “or “2” 
+1=Home, 2=Community  
+ 25 String Optional “1” | ”2” 
+VisitChanges – Conditional 
+Conditional segment provided when a visit has been manually entered, adjusted, or updated in the source system. The Visit General segment 
+should reflect the updated information, while this associated Visit Change segment should record the details around that change and supply the 
+reason code for why it occurred. The fields in this segment marked as required “Yes” are only needed when this segment is sent. 
+1 SequenceID The Third-Party EVV visit sequence 
+ID to which the change applied. For 
+HHA System users, the value is the 
+system-generated key. 
+16 String Yes Third-Party EVV Visit 
+Sequence ID.  
+If TIMESTAMP is used: 
+YYYYMMDDHHMMSS 
+Numbers only; no other 
+characters. 
+--- Page 37 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 37 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+2 ChangeMadeBy The unique identifier of the user, 
+system, or process that made the 
+change. This could be a system 
+identifier for the user or an email. 
+Could also be a system process, in 
+which case it should be identified. 
+64 String Yes Unique Identifier of Change 
+Agent 
+Required – Username 
+or User Identifier who 
+completed the change to the 
+visit information (Audit) 
+3 ChangeDateTime Date and time when change is 
+made. At least to the second. 
+20 DateTime Yes Date and Time When Change 
+is Made 
+Format: 
+ YYYY-MM-DDTHH:MM:SSZ 
+4 GroupCode GroupCode applies to visits for a 
+single caregiver that provides 
+services to multiple clients or 
+multiple caregivers providing 
+service to a single client that occur 
+during the same time span. It is used 
+to reassemble all members of the 
+group and will impact state 
+reporting and analytics for 
+overlapping visits. Use only if this 
+functionality is provided by the 
+Alternate EVV vendor. 
+6 String Optional GroupCode 
+5 ReasonCode Reason Code associated with the 
+change. 
+4 String Yes See Appendix 9.3 for values 
+6 ChangeReasonMemo Reason/Description of the change 
+being made if entered. Required for 
+some reason codes and CallType 
+“Manual” or if “Adjusted” times are 
+included. 
+256 String Conditional Required if ReasonCode = 
+Other, Participant Refusal  
+Optional otherwise 
+7 ResolutionCode Resolution codes, if selected. 
+Resolution Codes are specific to the 
+program. 
+ 4 String Do Not 
+Provide 
+ 
+--- Page 38 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 38 
+Proprietary & Confidential       
+  
+Index Element Description Max 
+Length Type Required? Expected Value 
+Tasks – Conditional 
+Conditional segment. This segment contains the non-service specific details regarding activities the caregiver performed during the visit. These 
+detailed activities are known as 'Tasks' and often align to the care plan designed for the individual receiving care. Please refer to the service task 
+Appendix to determine if one or more tasks must be submitted with this visit. Please reference the task id that is associated with the service in the Task list 
+Appendix. 
+1 TaskID TaskID, this TaskID must map to the 
+Task IDs used for the agency in the 
+Sandata system. Tasks are required 
+for the ABP, AUP, CHP, PCP & 
+MHP programs. Please reference 
+the task id that is associated with 
+the service in the Task List 
+Appendix. 
+4 String Yes See Task List Appendix 
+2 TaskReading Task reading recorded during the 
+service. 
+10 String Optional Can be NULL 
+No Special Characters 
+3 TaskRefused True, False 5 Boolean Optional String match = “True" | "False" 
+Can be NULL 
+VisitExceptionAcknowledgement – Conditional 
+Conditional segment provided for a visit when it has corrections, alterations, or updates that caused exceptions, which have been acknowledged 
+by the provider agency. Every exception that is acknowledgeable (versus exceptions that require a fix- or alteration of the visit data) must have 
+an acknowledgement for the visit to be fully verified and compliant with the EVV program's rules. The fields in this segment marked as required 
+“Yes” are only needed when this segment is sent. 
+1 ExceptionID ID for the exception being 
+acknowledged. 
+2 String Yes See Appendix 9.4 for values 
+2 ExceptionAcknowledged True to acknowledge exceptions 
+that are indicated as 
+acknowledgeable only. False by 
+default. 
+5 String Yes "true" or "false" 
+ 
+--- Page 39 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 39 
+Proprietary & Confidential       
+  
+9 Appendices 
+ 
+ 
+9.1 Payers & Programs  
+PayerID Payer Program Payer Name Program Description 
+CTDSS ABI, AUI, CHI, PCI Connecticut Department of Social Services Home Health for Waiver Programs 
+CTDSS ABP, AUP, CHP, 
+PCP 
+Connecticut Department of Social Services Acquired Brain Injury, Autism Professional, CT Home Care, 
+Personal Care Assistant  non-Clinical Programs 
+CTHH HHI Connecticut Department of Social Services Home Health for Non-Waiver Programs 
+CMHW MHP Connecticut Mental Health Wavier Connecticut Mental Health Wavier Program - Agency 
+9.1.1 Non-Waiver Home Health Procedure Codes – Revenue Center Codes (RCCs) 
+ 
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTHH HHI G0162         RN MGMT and EVAL of POC, 15 min 
+CTHH HHI G0162 TT       RN MGMT and EVAL of POC, 15 min Subsequent Client 
+CTHH HHI G0162 U2       RN MGMT and EVAL of POC, 15 min 1X Only 
+CTHH HHI G0162 U2 TT     RN MGMT and EVAL of POC, 15 min Subsequent Client 
+1X Only 
+CTHH HHI G0151         PT in HH/Hospice EVAL of POC, 15 min 
+CTHH HHI G0151 TT       PT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 
+CTHH HHI G0151 U2       PT in HH/Hospice EVAL of POC, 15 min 1X Only 
+CTHH HHI G0151 U2 TT     PT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTHH HHI G0152         OT in HH/Hospice EVAL of POC, 15 min 
+CTHH HHI G0152 TT       OT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 
+CTHH HHI G0152 U2       OT in HH/Hospice EVAL of POC, 15 min 1X Only 
+--- Page 40 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 40 
+Proprietary & Confidential       
+  
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTHH HHI G0152 U2 TT     OT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTHH HHI G0153         ST in HH/Hospice EVAL of POC, 15 min 
+CTHH HHI G0153 TT       ST in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 
+CTHH HHI G0153 U2       ST in HH/Hospice EVAL of POC, 15 min 1X Only 
+CTHH HHI G0153 U2 TT     ST in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTHH HHI G0493         RN Care 15 Mins HH/Hospice (Req TB Diag) 
+CTHH HHI G0494         LPN Care 15 Mins HH/Hospice (Req TB Diag) 
+CTHH HHI H0033         Oral MED ADMIN, Direct Observation 
+CTHH HHI H0033 TT       Oral MED ADMIN, Direct Observation Subsequent 
+Client 
+CTHH HHI H0033 U2       Oral MED ADMIN, Direct Observation 1X Only 
+CTHH HHI H0033 U2 TT     Oral MED ADMIN, Direct Observation Subsequent 
+Client 1X Only 
+CTHH HHI S9123         Nursing Care, RN 
+CTHH HHI S9123 TG       Nursing Care, RN Complex Care 
+CTHH HHI S9123 TG TT     Nursing Care, RN Complex Care Subsequent Client 
+CTHH HHI S9123 TH       Nursing Care, RN Obstetrics 
+CTHH HHI S9123 TH TT     Nursing Care, RN Obstetrics Subsequent Client 
+CTHH HHI S9123 TT       Nursing Care, RN Subsequent Client 
+CTHH HHI S9123 U2       Nursing Care, RN 1X Only 
+CTHH HHI S9123 U2 TT     Nursing Care, RN Subsequent Client 1X Only 
+CTHH HHI S9124         Nursing Care, LPN 
+CTHH HHI S9124 TG TE     Nursing Care, LPN Complex Care 
+CTHH HHI S9124 TG TE TT   Nursing Care, LPN Complex Care Subsequent Client 
+CTHH HHI S9124 TH       Nursing Care, LPN Obstetrics 
+CTHH HHI S9124 TH TT     Nursing Care, LPN Obstetrics Subsequent Client 
+CTHH HHI S9124 TT       Nursing Care, LPN Subsequent Client 
+CTHH HHI S9124 U2       Nursing Care, LPN 1X Only 
+CTHH HHI S9124 U2 TT     Nursing Care, LPN Subsequent Client 1X Only 
+--- Page 41 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 41 
+Proprietary & Confidential       
+  
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTHH HHI T1001         Nursing ASSESS/EVAL 
+CTHH HHI T1001 TD       Nursing ASSESS/EVAL Initial 
+CTHH HHI T1001 TD TT     Nursing ASSESS/EVAL Initial Subsequent Client 
+CTHH HHI T1001 TD U2     Nursing ASSESS/EVAL Initial 1X Only 
+CTHH HHI T1001 TD U2 TT   Nursing ASSESS/EVAL Initial Subsequent Client 1X Only 
+CTHH HHI T1002         Addl RN Services /15 Mins  max 1 Hr 
+CTHH HHI T1002 TT       Addl RN Services /15 Mins max 1 Hr Subsequent Client 
+CTHH HHI T1002 U2       Addl RN Services /15 Mins max 1 Hr 1X Only 
+CTHH HHI T1002 U2 TT     Addl RN Services /15 Mins max 1 Hr Subsequent Client 
+1X Only 
+CTHH HHI T1002 TH       Addl RN Services /15 Mins max 1 Hr Obstetrics 
+CTHH HHI T1002 TH TT     Addl RN Services /15 Mins max 1 Hr Obstetrics 
+Subsequent Client 
+CTHH HHI T1003         Addl LPN Services /15 Mins max 1Hr 
+CTHH HHI T1003 TT       Addl LPN Services /15 Mins max 1Hr Subsequent Client  
+CTHH HHI T1003 U2       Addl LPN Services /15 Mins max 1Hr 1X Only 
+CTHH HHI T1003 U2 TT     Addl LPN Services /15 Mins max 1Hr Subsequent Client 
+1X Only 
+CTHH HHI T1003 TH       Addl LPN Services /15 Mins max 1Hr Obstetrics 
+CTHH HHI T1003 TH TT     Addl LPN Services /15 Mins max 1Hr Obstetrics 
+Subsequent Client 
+CTHH HHI T1004         Nursing Aide Services /15 Mins 
+CTHH HHI T1004 TT       Nursing Aide Services /15 Mins Subsequent Client  
+CTHH HHI T1004 U2       Nursing Aide Services /15 Mins 1X Only 
+CTHH HHI T1004 U2 TT     Nursing Aide Services /15 Mins Subsequent Client 1X 
+Only 
+CTHH HHI T1021         MED TECH (HHA OR CNA) Per Visit 
+CTHH HHI T1021 TT       MED TECH (HHA OR CNA) Per Visit Subsequent Client 
+CTHH HHI T1021 U2       MED TECH (HHA OR CNA) Per Visit 1X Only 
+CTHH HHI T1021 U2 TT     MED TECH (HHA OR CNA) Per Visit Subsequent Client 
+1X Only 
+CTHH HHI T1502         MED ADMIN, Oral, IM/SUBQ Per Visit 
+--- Page 42 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 42 
+Proprietary & Confidential       
+  
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTHH HHI T1502 TT       MED ADMIN, Oral, IM/SUBQ Per Visit Subsequent 
+Client 
+CTHH HHI T1502 U2       MED ADMIN, Oral, IM/SUBQ Per Visit 1X Only 
+CTHH HHI T1502 U2 TT     MED ADMIN, Oral, IM/SUBQ Per Visit Subsequent 
+Client 1X Only 
+CTHH HHI T1503         MED ADMIN, Non IM/SUBQ, Oral Per Visit 
+CTHH HHI T1503 TT       MED ADMIN, Non IM/SUBQ, Oral Per Visit Subsequent 
+Client 
+CTHH HHI T1503 U2       MED ADMIN, Non IM/SUBQ, Oral Per Visit 1X Only 
+CTHH HHI T1503 U2 TT     MED ADMIN, Non IM/SUBQ, Oral Per Visit Subsequent 
+Client 1X Only 
+CTHH HHI 421         PT, in the Home 
+CTHH HHI 424          PT EVAL 
+CTHH HHI 424 TT        PT EVAL Subsequent Client 
+CTHH HHI 424 U2        PT EVAL 1X Only 
+CTHH HHI 424 U2 TT      PT EVAL Subsequent Client 1X Only 
+CTHH HHI 431         OT, in the Home 
+CTHH HHI 434         OT EVAL 
+CTHH HHI 434 TT       OT EVAL Subsequent Client 
+CTHH HHI 434 U2       OT EVAL 1X Only 
+CTHH HHI 434 U2 TT     OT EVAL Subsequent Client 1X Only 
+CTHH HHI 441         ST, in the Home 
+CTHH HHI 444         ST EVAL 
+CTHH HHI 444 TT       ST EVAL Subsequent Client 
+CTHH HHI 444 U2       ST EVAL 1X Only 
+CTHH HHI 444 U2 TT     ST EVAL Subsequent Client 1X Only 
+ 
+ 
+ 
+--- Page 43 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 43 
+Proprietary & Confidential       
+  
+9.1.2 Waiver Home Health Procedure Codes – Revenue Center Codes (RCCs) 
+ 
+These Services can be used with any of the following program codes (ABI, AUI, CHI, PCI) 
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS  G0162         RN MGMT and EVAL of POC, 15 min 
+CTDSS  G0162 TT       RN MGMT and EVAL of POC, 15 min Subsequent 
+Client 
+CTDSS  G0162 U2       RN MGMT and EVAL of POC, 15 min 1X Only 
+CTDSS  G0162 U2 TT     RN MGMT and EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTDSS  G0151         PT in HH/Hospice EVAL of POC, 15 min 
+CTDSS  G0151 TT       PT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 
+CTDSS  G0151 U2       PT in HH/Hospice EVAL of POC, 15 min 1X Only 
+CTDSS  G0151 U2 TT     PT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTDSS  G0152         OT in HH/Hospice EVAL of POC, 15 min 
+CTDSS  G0152 TT       OT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 
+CTDSS  G0152 U2       OT in HH/Hospice EVAL of POC, 15 min 1X Only 
+CTDSS  G0152 U2 TT     OT in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTDSS  G0153         ST in HH/Hospice EVAL of POC, 15 min 
+CTDSS  G0153 TT       ST in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 
+CTDSS  G0153 U2       ST in HH/Hospice EVAL of POC, 15 min 1X Only 
+CTDSS  G0153 U2 TT     ST in HH/Hospice EVAL of POC, 15 min Subsequent 
+Client 1X Only 
+CTDSS  H0033         Oral MED ADMIN, Direct Observation 
+CTDSS  H0033 TT       Oral MED ADMIN, Direct Observation Subsequent 
+Client 
+CTDSS  H0033 U2       Oral MED ADMIN, Direct Observation 1X Only 
+--- Page 44 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 44 
+Proprietary & Confidential       
+  
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS  H0033 U2 TT     Oral MED ADMIN, Direct Observation Subsequent 
+Client 1X Only 
+CTDSS  S9123         Nursing Care, RN 
+CTDSS  S9123 TT       Nursing Care, RN Subsequent Client 
+CTDSS  S9123 U2       Nursing Care, RN 1X Only 
+CTDSS  S9123 U2 TT     Nursing Care, RN Subsequent Client 1X Only 
+CTDSS  S9124         Nursing Care, LPN 
+CTDSS  S9124 TT       Nursing Care, LPN Subsequent Client 
+CTDSS  S9124 U2       Nursing Care, LPN 1X Only 
+CTDSS  S9124 U2 TT     Nursing Care, LPN Subsequent Client 1X Only 
+CTDSS  T1001         Nursing ASSESS/EVAL 
+CTDSS  T1001 TD       Nursing ASSESS/EVAL Initial 
+CTDSS  T1001 TD TT     Nursing ASSESS/EVAL Initial Subsequent Client 
+CTDSS  T1001 TD U2     Nursing ASSESS/EVAL Initial 1X Only 
+CTDSS  T1001 TD U2 TT   Nursing ASSESS/EVAL Initial Subsequent Client 1X 
+Only 
+CTDSS  T1002         Addl RN Services /15 Mins max 1 Hr 
+CTDSS  T1002 TT       Addl RN Services /15 Mins max 1 Hr Subsequent 
+Client 
+CTDSS  T1002 U2       Addl RN Services /15 Mins max 1 Hr 1X Only 
+CTDSS  T1002 U2 TT     Addl RN Services /15 Mins max 1 Hr Subsequent 
+Client 1X Only 
+CTDSS  T1003         Addl LPN Services /15 Mins max 1Hr 
+CTDSS  T1003 TT       Addl LPN Services /15 Mins max 1Hr Subsequent 
+Client  
+CTDSS  T1003 U2       Addl LPN Services /15 Mins max 1Hr 1X Only 
+CTDSS  T1003 U2 TT     Addl LPN Services /15 Mins max 1Hr Subsequent 
+Client 1X Only 
+CTDSS  T1004         Nursing Aide Services /15 Mins 
+CTDSS  T1004 TT       Nursing Aide Services /15 Mins Subsequent Client  
+CTDSS  T1004 U2       Nursing Aide Services /15 Mins 1X Only 
+--- Page 45 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 45 
+Proprietary & Confidential       
+  
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS  T1004 U2 TT     Nursing Aide Services /15 Mins Subsequent Client 1X 
+Only 
+CTDSS  T1021         MED TECH (HHA OR CNA) Per Visit 
+CTDSS  T1021 TT       MED TECH (HHA OR CNA) Per Visit Subsequent 
+Client 
+CTDSS  T1021 U2       MED TECH (HHA OR CNA) Per Visit 1X Only 
+CTDSS  T1021 U2 TT     MED TECH (HHA OR CNA) Per Visit Subsequent 
+Client 1X Only 
+CTDSS  T1502         MED ADMIN, Oral, IM/SUBQ Per Visit 
+CTDSS  T1502 TT       MED ADMIN, Oral, IM/SUBQ Per Visit Subsequent 
+Client 
+CTDSS  T1502 U2       MED ADMIN, Oral, IM/SUBQ Per Visit 1X Only 
+CTDSS  T1502 U2 TT     MED ADMIN, Oral, IM/SUBQ Per Visit Subsequent 
+Client 1X Only 
+CTDSS  T1503         MED ADMIN, Non IM/SUBQ, Oral Per Visit 
+CTDSS  T1503 TT       MED ADMIN, Non IM/SUBQ, Oral Per Visit 
+Subsequent Client 
+CTDSS  T1503 U2       MED ADMIN, Non IM/SUBQ, Oral Per Visit 1X Only 
+CTDSS  T1503 U2 TT     MED ADMIN, Non IM/SUBQ, Oral Per Visit 
+Subsequent Client 1X Only 
+CTDSS  421         PT, in the Home 
+CTDSS  424          PT EVAL 
+CTDSS  424 TT        PT EVAL Subsequent Client 
+CTDSS  424 U2        PT EVAL 1X Only 
+CTDSS  424 U2 TT      PT EVAL Subsequent Client 1X Only 
+CTDSS  431         OT, in the Home 
+CTDSS  434         OT EVAL 
+CTDSS  434 TT       OT EVAL Subsequent Client 
+CTDSS  434 U2       OT EVAL 1X Only 
+CTDSS  434 U2 TT     OT EVAL Subsequent Client 1X Only 
+CTDSS  441         ST, in the Home 
+--- Page 46 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 46 
+Proprietary & Confidential       
+  
+Payer Program HCPCS/RCC Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS  444         ST EVAL 
+CTDSS  444 TT       ST EVAL Subsequent Client 
+CTDSS  444 U2       ST EVAL 1X Only 
+CTDSS  444 U2 TT     ST EVAL Subsequent Client 1X Only 
+ 
+9.1.3 Mental Health Waiver Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTMHW MHP 1206Z GW 
+   
+Chore Service Agency per 15 min NA to hospice 
+condition 
+CTMHW MHP 1206Z TT 
+   
+Chore Service Agency per 15 min subsequent client 
+CTMHW MHP 1206Z TU 
+   
+Chore Service Agency per 15 min OT 
+CTMHW MHP 1206Z U2 
+   
+Chore Service Agency per 15 min 1x only 
+CTMHW MHP 1206Z 
+    
+Chore Service Agency per 15 min 
+CTMHW MHP 1213M GW 
+   
+Recovery Assist Agency per 15 min NA to hospice 
+condition 
+CTMHW MHP 1213M TT 
+   
+Recovery Assist Agency per 15 min subsequent client 
+CTMHW MHP 1213M TU 
+   
+Recovery Assist Agency per 15 min OT 
+CTMHW MHP 1213M U2 
+   
+Recovery Assist Agency per 15 min 1x only 
+CTMHW MHP 1213M 
+    
+Recovery Assist Agency per 15 min 
+CTMHW MHP 1217M GW 
+   
+Recovery Assist Overngt per 15 min NA to hospice 
+condition 
+CTMHW MHP 1217M TT 
+   
+Recovery Assist Overnight per 15 min subsequent 
+client 
+CTMHW MHP 1217M TU 
+   
+Recovery Assist Overnight per 15 min OT 
+CTMHW MHP 1217M U2 
+   
+Recovery Assist Overnight per 15 min 1x only 
+CTMHW MHP 1217M 
+    
+Recovery Assist Overnight per 15 min 
+CTMHW MHP 1229Z GW 
+   
+Brief Episode Stabilization per 15 min NA to hospice 
+condition 
+--- Page 47 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 47 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTMHW MHP 1229Z TT 
+   
+Brief Episode Stabilization per 15 min subsequent 
+client 
+CTMHW MHP 1229Z TU 
+   
+Brief Episode Stabilization per 15 min OT 
+CTMHW MHP 1229Z U2 
+   
+Brief Episode Stabilization per 15 min 1x only 
+CTMHW MHP 1229Z 
+    
+Brief Episode Stabilization per 15 min 
+CTMHW MHP 1247Z GW 
+   
+Mental Health Counseling per visit NA to hospice 
+condition 
+CTMHW MHP 1247Z TT 
+   
+Mental Health Counseling per visit subsequent client 
+CTMHW MHP 1247Z U2 
+   
+Mental Health Counseling per visit 1x only 
+CTMHW MHP 1247Z 
+    
+Mental Health Counseling per visit 
+CTMHW MHP G9012 GW 
+   
+Transitional Case Management per 15 min NA to 
+hospice condition 
+CTMHW MHP G9012 TT 
+   
+Transitional Case Management per 15 min 
+subsequent client 
+CTMHW MHP G9012 TU 
+   
+Transitional Case Management per 15 min OT 
+CTMHW MHP G9012 U2 
+   
+Transitional Case Management per 15 min 1x only 
+CTMHW MHP G9012 
+    
+Transitional Case Management per 15 min 
+CTMHW MHP H0038 GW 
+   
+Self-Help Peer Services per 15 min NA to hospice 
+condition 
+CTMHW MHP H0038 TT 
+   
+Self-Help Peer Services per 15 min subsequent client 
+CTMHW MHP H0038 TU 
+   
+Self-Help Peer Services per 15 min OT 
+CTMHW MHP H0038 U2 
+   
+Self-Help Peer Services per 15 min 1x only 
+CTMHW MHP H0038 
+    
+Self-Help Peer Services per 15 min 
+CTMHW MHP H2015 GW 
+   
+Community Support Service per 15 min NA to 
+hospice condition 
+CTMHW MHP H2015 TT 
+   
+Community Support Service per 15 min subsequent 
+client 
+CTMHW MHP H2015 TU 
+   
+Community Support Service per 15 min OT 
+CTMHW MHP H2015 U2 
+   
+Community Support Service per 15 min 1x only 
+CTMHW MHP H2015 
+    
+Community Support Service per 15 min 
+CTMHW MHP H2023 GW 
+   
+Supported Employment per 15 min NA to hospice 
+condition 
+CTMHW MHP H2023 TT 
+   
+Supported Employment per 15 min subsequent client 
+--- Page 48 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 48 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTMHW MHP H2023 TU 
+   
+Supported Employment per 15 min OT 
+CTMHW MHP H2023 U2 
+   
+Supported Employment per 15 min 1x only 
+CTMHW MHP H2023 
+    
+Supported Employment per 15 min 
+ 
+9.1.4 Acquired Brain Injury Non-Clinical Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS ABP 1021Z 
+    
+Personal Care Services per 15 min 
+CTDSS ABP 1021Z TT 
+   
+Personal Care Services per 15 min subsequent client 
+CTDSS ABP 1021Z TT TU 
+  
+Personal Care Services per 15 min subsequent client 
+OT 
+CTDSS ABP 1021Z TU 
+   
+Personal Care Services per 15 min OT 
+CTDSS ABP 1021Z U2 
+   
+Personal Care Services per 15 min 1X only 
+CTDSS ABP 1021Z U2 TT 
+  
+Personal Care Services per 15 min 1X only 
+subsequent client 
+CTDSS ABP 1021Z U2 TT TU 
+ 
+Personal Care Services per 15 min 1X only 
+subsequent client OT 
+CTDSS ABP 1021Z U2 TU 
+  
+Personal Care Services per 15 min 1X only OT 
+CTDSS ABP 1022Z 
+    
+Personal Care Services Overnight per visit 
+CTDSS ABP 1022Z TT 
+   
+Personal Care Services Overnight per visit 
+subsequent client 
+CTDSS ABP 1022Z U2 
+   
+Personal Care Services Overnight per visit 1X only 
+CTDSS ABP 1022Z U2 TT 
+  
+Personal Care Services Overnight per visit 1X only 
+sub client 
+CTDSS ABP 1023Z 
+    
+Personal Care Services Per Diem 
+CTDSS ABP 1023Z TT 
+   
+Personal Care Services Per Diem subsequent client 
+CTDSS ABP 1023Z U2 
+   
+Personal Care Services Per Diem 1X only 
+CTDSS ABP 1023Z U2 TT 
+  
+Personal Care Services Per Diem 1X only subsequent 
+client 
+CTDSS ABP 1211P 
+    
+Recovery Assistant per 15 min 
+--- Page 49 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 49 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS ABP 1211P TT 
+   
+Recovery Assistant per 15 min subsequent client 
+CTDSS ABP 1211P TT TU 
+  
+Recovery Assistant per 15 min subsequent client OT 
+CTDSS ABP 1211P TU 
+   
+Recovery Assistant per 15 min OT 
+CTDSS ABP 1211P U2 
+   
+Recovery Assistant per 15 min 1X only 
+CTDSS ABP 1211P U2 TT 
+  
+Recovery Assistant per 15 min 1X only subsequent 
+client 
+CTDSS ABP 1211P U2 TT TU 
+ 
+Recovery Assistant per 15 min 1X only subsequent 
+client OT 
+CTDSS ABP 1211P U2 TU 
+  
+Recovery Assistant per 15 min 1X only OT 
+CTDSS ABP 1212P 
+    
+Recovery Assistant II per 15 min 
+CTDSS ABP 1212P TT 
+   
+Recovery Assistant II per 15 min subsequent client 
+CTDSS ABP 1212P TT TU 
+  
+Recovery Assistant II per 15 min subsequent client 
+OT 
+CTDSS ABP 1212P TU 
+   
+Recovery Assistant II per 15 min OT 
+CTDSS ABP 1212P U2 
+   
+Recovery Assistant II per 15 min 1X only 
+CTDSS ABP 1212P U2 TT 
+  
+Recovery Assistant II per 15 min 1X only subsequent 
+client 
+CTDSS ABP 1212P U2 TT TU 
+ 
+Recovery Assistant II per 15 min 1X only subsequent 
+client OT 
+CTDSS ABP 1212P U2 TU 
+  
+Recovery Assistant II per 15 min 1X only OT 
+CTDSS ABP 1225Z 
+    
+PCA Per Diem Cannot Be Completed Hrly 
+CTDSS ABP 1225Z TT 
+   
+PCA Per Diem Cannot Be Completed Hrly 
+subsequent client 
+CTDSS ABP 1225Z U2 
+   
+PCA Per Diem Cannot Be Completed Hrly 1X only 
+CTDSS ABP 1225Z U2 TT 
+  
+PCA Per Diem Cannot Be Completed Hrly 1X only 
+subsequent client 
+CTDSS ABP 1232Z 
+    
+Respite Care Other Hrly 
+CTDSS ABP 1232Z TT 
+   
+Respite Care Other Hrly subsequent client 
+CTDSS ABP 1232Z U2 
+   
+Respite Care Other Hrly 1X only 
+CTDSS ABP 1232Z U2 TT 
+  
+Respite Care Other Hrly 1X only subsequent client 
+CTDSS ABP 1531P 
+    
+Community Living Support Services per visit 
+CTDSS ABP 1531P TT 
+   
+Community Living Support Services per visit 
+subsequent client 
+--- Page 50 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 50 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS ABP 1531P U2 
+   
+Community Living Support Services per visit 1X only 
+CTDSS ABP 1531P U2 TT 
+  
+Community Living Support Services per visit 1X only 
+sub client 
+CTDSS ABP 1532P 
+    
+Chore Services per 15 min 
+CTDSS ABP 1532P TT 
+   
+Chore Services per 15 min subsequent client 
+CTDSS ABP 1532P U2 
+   
+Chore Services per 15 min 1X only 
+CTDSS ABP 1532P U2 TT 
+  
+Chore Services per 15 min 1X only subsequent client 
+CTDSS ABP 1534P 
+    
+Community Living Support Services 1/2 Day 
+CTDSS ABP 1534P TT 
+   
+Community Living Support Services 1/2 Day 
+subsequent client 
+CTDSS ABP 1534P U2 
+   
+Community Living Support Services 1/2 Day 1X only 
+CTDSS ABP 1534P U2 TT 
+  
+Community Living Support Services 1/2 Day 1X only 
+sub client 
+CTDSS ABP 1536P 
+    
+Companion Services per 15 min 
+CTDSS ABP 1536P TT 
+   
+Companion Services per 15 min subsequent client 
+CTDSS ABP 1536P TT TU 
+  
+Companion Services per 15 min subsequent client OT 
+CTDSS ABP 1536P TU 
+   
+Companion Services per 15 min OT 
+CTDSS ABP 1536P U2 
+   
+Companion Services per 15 min 1X only 
+CTDSS ABP 1536P U2 TT 
+  
+Companion Services per 15 min 1X only subsequent 
+client 
+CTDSS ABP 1536P U2 TT TU 
+ 
+Companion Services per 15 min 1X only subsequent 
+client OT 
+CTDSS ABP 1536P U2 TU 
+  
+Companion Services per 15 min 1X only OT 
+CTDSS ABP 1542P 
+    
+Homemaker Services per 15 min 
+CTDSS ABP 1542P TT 
+   
+Homemaker Services per 15 min subsequent client 
+CTDSS ABP 1542P U2 
+   
+Homemaker Services per 15 min 1X only 
+CTDSS ABP 1542P U2 TT 
+  
+Homemaker Services per 15 min 1X only subsequent 
+client 
+CTDSS ABP 1546P 
+    
+Independent Living Skill per 15 min 
+CTDSS ABP 1546P TT 
+   
+Independent Living Skill per 15 min subsequent client 
+CTDSS ABP 1546P U2 
+   
+Independent Living Skill per 15 min 1X only 
+--- Page 51 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 51 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS ABP 1546P U2 TT 
+  
+Independent Living Skill per 15 min 1X only 
+subsequent client 
+CTDSS ABP 1562P 
+    
+Respite Care Hrly 
+CTDSS ABP 1562P TT 
+   
+Respite Care Hrly subsequent client 
+CTDSS ABP 1562P U2 
+   
+Respite Care Hrly 1X only 
+CTDSS ABP 1562P U2 TT 
+  
+Respite Care Hrly 1X only subsequent client 
+CTDSS ABP 3022Z         PCA Overnight Hrly 
+CTDSS ABP 3022Z TT       PCA Overnight Hrly subsequent client 
+CTDSS ABP 3022Z U2       PCA Overnight Hrly 1X only 
+CTDSS ABP 3022Z U2 TT     PCA Overnight Hrly 1X only subsequent client 
+ 
+ 
+9.1.5 Acquired Brain Injury Non-Clinical (Optional) Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS ABP 1560P 
+    
+PreVocational Services Hrly 
+CTDSS ABP 1560P TT 
+   
+PreVocational Services Hrly subsequent client 
+CTDSS ABP 1560P U2 
+   
+PreVocational Services Hrly 1X only 
+CTDSS ABP 1560P U2 TT 
+  
+PreVocational Services Hrly 1X only subsequent 
+client 
+CTDSS ABP 1572P 
+    
+Supported Employment Hrly 
+CTDSS ABP 1572P TT 
+   
+Supported Employment Hrly subsequent client 
+CTDSS ABP 1572P U2 
+   
+Supported Employment Hrly 1X only 
+CTDSS ABP 1572P U2 TT 
+  
+Supported Employment Hrly 1X only subsequent 
+client 
+ 
+ 
+ 
+--- Page 52 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 52 
+Proprietary & Confidential       
+  
+9.1.6 Autism Professional Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS AUP 1302Z     Job Coach Agency per 15 min 
+CTDSS AUP 1302Z TT    Job Coach Agency per 15 min subsequent client 
+CTDSS AUP 1302Z U2    Job Coach Agency per 15 min 1X only 
+CTDSS AUP 1302Z U2 TT   Job Coach Agency per 15 min 1X only subsequent 
+client 
+CTDSS AUP 1304Z     Life Skills Coach Agency per 15 min 
+CTDSS AUP 1304Z TT    Life Skills Coach Agency per 15 min subsequent client 
+CTDSS AUP 1304Z U2    Life Skills Coach Agency per 15 min 1X only 
+CTDSS AUP 1304Z U2 TT   Life Skills Coach Agency per 15 min 1X only 
+subsequent client 
+CTDSS AUP 1396Z     Community Mentor Agency per 15 min 
+CTDSS AUP 1396Z TT    Community Mentor Agency per 15 min subsequent 
+client 
+CTDSS AUP 1396Z U2    Community Mentor Agency per 15 min 1X only 
+CTDSS AUP 1396Z U2 TT   Community Mentor Agency per 15 min 1X only 
+subsequent client 
+CTDSS AUP 1404Z     Respite Agency in Home Individual per 15 min 
+CTDSS AUP 1404Z TT    Respite Agency in Home Individual per 15 min 
+subsequent client 
+CTDSS AUP 1404Z U2    Respite Agency in Home Individual per 15 min 1X 
+only 
+CTDSS AUP 1404Z U2 TT   Respite Agency in Home Individual per 15 min 1X 
+only sub client 
+ 
+ 
+ 
+ 
+ 
+--- Page 53 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 53 
+Proprietary & Confidential       
+  
+9.1.7 Autism Professional (Optional) Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS AUP H2019     Therapeutic Behavioral Services per 15 min 
+CTDSS AUP H2019 TT    Therapeutic Behavioral Services per 15 min 
+subsequent client 
+CTDSS AUP H2019 U2    Therapeutic Behavioral Services per 15 min 1X only 
+CTDSS AUP H2019 U2 TT   Therapeutic Behavioral Services per 15 min 1X only 
+sub client 
+ 
+9.1.8 CT Home Care Program Non-Clinical Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS CHP 1021Z 
+    
+Personal Care Services per 15 min 
+CTDSS CHP 1021Z TT 
+   
+Personal Care Services per 15 min subsequent client 
+CTDSS CHP 1021Z TT TU 
+  
+Personal Care Services per 15 min subsequent client 
+OT 
+CTDSS CHP 1021Z TU 
+   
+Personal Care Services per 15 min OT 
+CTDSS CHP 1021Z U2 
+   
+Personal Care Services per 15 min 1X only 
+CTDSS CHP 1021Z U2 TT 
+  
+Personal Care Services per 15 min 1X only 
+subsequent client 
+CTDSS CHP 1021Z U2 TT TU 
+ 
+Personal Care Services per 15 min 1X only 
+subsequent client OT 
+CTDSS CHP 1021Z U2 TU 
+  
+Personal Care Services per 15 min 1X only OT 
+CTDSS CHP 1022Z 
+    
+Personal Care Services Overnight per visit 
+CTDSS CHP 1022Z TT 
+   
+Personal Care Services Overnight per visit 
+subsequent client 
+CTDSS CHP 1022Z U2 
+   
+Personal Care Services Overnight per visit 1X only 
+CTDSS CHP 1022Z U2 TT 
+  
+Personal Care Services Overnight per visit 1X only 
+sub client 
+CTDSS CHP 1023Z 
+    
+Personal Care Services Per Diem 
+--- Page 54 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 54 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS CHP 1023Z TT 
+   
+Personal Care Services Per Diem subsequent client 
+CTDSS CHP 1023Z U2 
+   
+Personal Care Services Per Diem 1X only 
+CTDSS CHP 1023Z U2 TT 
+  
+Personal Care Services Per Diem 1X only subsequent 
+client 
+CTDSS CHP 1206Z 
+    
+Chore Service per 15 min 
+CTDSS CHP 1206Z TT 
+   
+Chore Service per 15 min subsequent client 
+CTDSS CHP 1206Z U2 
+   
+Chore Service per 15 min 1X only 
+CTDSS CHP 1206Z U2 TT 
+  
+Chore Service per 15 min 1X only subsequent client 
+CTDSS CHP 1210Z 
+    
+Companion Service per 15 min 
+CTDSS CHP 1210Z TT 
+   
+Companion Service per 15 min subsequent client 
+CTDSS CHP 1210Z TT TU 
+  
+Companion Service per 15 min subsequent client OT 
+CTDSS CHP 1210Z TU 
+   
+Companion Service per 15 min OT 
+CTDSS CHP 1210Z U2 
+   
+Companion Service per 15 min 1X only 
+CTDSS CHP 1210Z U2 TT 
+  
+Companion Service per 15 min 1X only subsequent 
+client 
+CTDSS CHP 1210Z U2 TT TU 
+ 
+Companion Service per 15 min 1X only subsequent 
+client OT 
+CTDSS CHP 1210Z U2 TU 
+  
+Companion Service per 15 min 1X only OT 
+CTDSS CHP 1213M 
+    
+Recovery Assistance per 15 min 
+CTDSS CHP 1213M TT 
+   
+Recovery Assistance per 15 min subsequent client 
+CTDSS CHP 1213M TT TU 
+  
+Recovery Assistance per 15 min subsequent client 
+OT 
+CTDSS CHP 1213M TU 
+   
+Recovery Assistance per 15 min OT 
+CTDSS CHP 1213M U2 
+   
+Recovery Assistance per 15 min 1X only 
+CTDSS CHP 1213M U2 TT 
+  
+Recovery Assistance per 15 min 1X only subsequent 
+client 
+CTDSS CHP 1213M U2 TT TU 
+ 
+Recovery Assistance per 15 min 1X only subsequent 
+client OT 
+CTDSS CHP 1213M U2 TU 
+  
+Recovery Assistance per 15 min 1X only OT 
+CTDSS CHP 1214Z 
+    
+Homemaker per 15 min 
+CTDSS CHP 1214Z TT 
+   
+Homemaker per 15 min subsequent client 
+CTDSS CHP 1214Z U2 
+   
+Homemaker per 15 min 1X only 
+CTDSS CHP 1214Z U2 TT 
+  
+Homemaker per 15 min 1X only subsequent client 
+--- Page 55 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 55 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS CHP 1225Z 
+    
+PCA Per Diem Cannot Be Completed Hrly 
+CTDSS CHP 1225Z TT 
+   
+PCA Per Diem Cannot Be Completed Hrly 
+subsequent client 
+CTDSS CHP 1225Z U2 
+   
+PCA Per Diem Cannot Be Completed Hrly 1X only 
+CTDSS CHP 1225Z U2 TT 
+  
+PCA Per Diem Cannot Be Completed Hrly 1X only 
+subsequent client 
+CTDSS CHP 1226Z 
+    
+Respite Care Companion per 15 min 
+CTDSS CHP 1226Z TT 
+   
+Respite Care Companion per 15 min subsequent 
+client 
+CTDSS CHP 1226Z TT TU 
+  
+Respite Care Companion per 15 min subsequent 
+client OT 
+CTDSS CHP 1226Z TU 
+   
+Respite Care Companion per 15 min OT 
+CTDSS CHP 1226Z U2 
+   
+Respite Care Companion per 15 min 1X only 
+CTDSS CHP 1226Z U2 TT 
+  
+Respite Care Companion per 15 min 1X only 
+subsequent client 
+CTDSS CHP 1226Z U2 TT TU 
+ 
+Respite Care Companion per 15 min 1X only sub 
+client OT 
+CTDSS CHP 1226Z U2 TU 
+  
+Respite Care Companion per 15 min 1X only OT 
+CTDSS CHP 1228Z 
+    
+Respite Care Homemaker per 15 min 
+CTDSS CHP 1228Z TT 
+   
+Respite Care Homemaker per 15 min subsequent 
+client 
+CTDSS CHP 1228Z U2 
+   
+Respite Care Homemaker per 15 min 1X only 
+CTDSS CHP 1228Z U2 TT 
+  
+Respite Care Homemaker per 15 min 1X only 
+subsequent client 
+CTDSS CHP 1230Z 
+    
+Respite Care HHA per 15 min 
+CTDSS CHP 1230Z TT 
+   
+Respite Care HHA per 15 min subsequent client 
+CTDSS CHP 1230Z U2 
+   
+Respite Care HHA per 15 min 1X only 
+CTDSS CHP 1230Z U2 TT 
+  
+Respite Care HHA per 15 min 1X only subsequent 
+client 
+CTDSS CHP 1232Z 
+    
+Respite Care Other Hrly 
+CTDSS CHP 1232Z TT 
+   
+Respite Care Other Hrly subsequent client 
+CTDSS CHP 1232Z U2 
+   
+Respite Care Other Hrly 1X only 
+CTDSS CHP 1232Z U2 TT 
+  
+Respite Care Other Hrly 1X only subsequent client 
+--- Page 56 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 56 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS CHP 1247Z 
+    
+Mental Health Counseling Individual per visit 
+CTDSS CHP 1247Z TT 
+   
+Mental Health Counseling Individual per visit sub 
+client 
+CTDSS CHP 1247Z U2 
+   
+Mental Health Counseling Individual per visit 1X only 
+CTDSS CHP 1247Z U2 TT 
+  
+Mental Health Counseling Individual visit 1X only sub 
+client 
+CTDSS CHP 1322Z 
+    
+Bill Payer per 15 min 
+CTDSS CHP 1322Z TT 
+   
+Bill Payer per 15 min subsequent client 
+CTDSS CHP 1322Z U2 
+   
+Bill Payer per 15 min 1X only 
+CTDSS CHP 1322Z U2 TT 
+  
+Bill Payer per 15 min 1X only subsequent client 
+CTDSS CHP 3022Z     PCA Overnight Hrly 
+CTDSS CHP 3022Z TT    PCA Overnight Hrly subsequent client 
+CTDSS CHP 3022Z U2    PCA Overnight Hrly 1X only 
+CTDSS CHP 3022Z U2 TT   PCA Overnight Hrly 1X only subsequent client 
+CTDSS CHP 3024Z     PCA Respite Overnight, Cannot be Completed Hrly 
+CTDSS CHP 3024Z TT    PCA Respite Overnight, Cannot be Completed Hrly 
+sub client 
+CTDSS CHP 3024Z U2    PCA Respite Overnight, Cannot be Completed Hrly 
+1X only 
+CTDSS CHP 3024Z U2 TT   PCA Respite Overnight, Cannot be Completed Hr 1X 
+only sub client 
+CTDSS CHP 3025Z     PCA Respite Per Diem Cannot Be Completed Hrly 
+CTDSS CHP 3025Z TT    PCA Respite Per Diem Cannot Be Completed Hrly 
+subsequent client 
+CTDSS CHP 3025Z U2    PCA Respite Per Diem Cannot Be Completed Hrly 1X 
+only 
+CTDSS CHP 3025Z U2 TT   PCA Respite Per Diem Cannot Be Completed Hrly 1X 
+only sub client 
+CTDSS CHP 3026Z     Personal Care Respite Services Overnight 
+CTDSS CHP 3026Z TT    Personal Care Respite Services Overnight 
+subsequent client 
+CTDSS CHP 3026Z U2    Personal Care Respite Services Overnight 1X only 
+CTDSS CHP 3026Z U2 TT   Personal Care Respite Services Overnight 1X only 
+sub client 
+--- Page 57 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 57 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS CHP 3027Z     Personal Care Respite Services per 15 min 
+CTDSS CHP 3027Z TT    Personal Care Respite Services per 15 min 
+subsequent client 
+CTDSS CHP 3027Z U2    Personal Care Respite Services per 15 min 1X only 
+CTDSS CHP 3027Z U2 TT   Personal Care Respite Services per 15 min 1X only 
+sub client 
+CTDSS CHP 3028Z     Personal Care Respite Services Per Diem 
+CTDSS CHP 3028Z TT    Personal Care Respite Services Per Diem subsequent 
+client 
+CTDSS CHP 3028Z U2    Personal Care Respite Services Per Diem 1X only 
+CTDSS CHP 3028Z U2 TT   Personal Care Respite Services Per Diem 1X only sub 
+client 
+ 
+9.1.9 Personal Care Assistant Non-Clinical Procedure Codes 
+ 
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS PCP 1021Z     Personal Care Services per 15 min 
+CTDSS PCP 1021Z TT    Personal Care Services per 15 min subsequent client 
+CTDSS PCP 1021Z TT TU   Personal Care Services per 15 min subsequent client 
+OT 
+CTDSS PCP 1021Z TU    Personal Care Services per 15 min OT 
+CTDSS PCP 1021Z U2    Personal Care Services per 15 min 1X only 
+CTDSS PCP 1021Z U2 TT   Personal Care Services per 15 min 1X only 
+subsequent client 
+CTDSS PCP 1021Z U2 TT TU  Personal Care Services per 15 min 1X only 
+subsequent client OT 
+CTDSS PCP 1021Z U2 TU   Personal Care Services per 15 min 1X only OT 
+CTDSS PCP 1022Z     Personal Care Services Overnight per visit 
+CTDSS PCP 1022Z TT    Personal Care Services Overnight per visit 
+subsequent client 
+CTDSS PCP 1022Z U2    Personal Care Services Overnight per visit 1X only 
+--- Page 58 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 58 
+Proprietary & Confidential       
+  
+Payer Program HCPCS Modifier 1 Modifier 2 Modifier 3 Modifier 4 Description 
+CTDSS PCP 1022Z U2 TT   Personal Care Services Overnight per visit 1X only 
+sub client 
+CTDSS PCP 1023Z     Personal Care Services Per Diem 
+CTDSS PCP 1023Z TT    Personal Care Services Per Diem subsequent client 
+CTDSS PCP 1023Z U2    Personal Care Services Per Diem 1X only 
+CTDSS PCP 1023Z U2 TT   Personal Care Services Per Diem 1X only subsequent 
+client 
+CTDSS PCP 1225Z     PCA Per Diem Cannot Be Completed Hrly 
+CTDSS PCP 1225Z TT    PCA Per Diem Cannot Be Completed Hrly 
+subsequent client 
+CTDSS PCP 1225Z U2    PCA Per Diem Cannot Be Completed Hrly 1X only 
+CTDSS PCP 1225Z U2 TT   PCA Per Diem Cannot Be Completed Hrly 1X only 
+subsequent client 
+CTDSS PCP 1247Z     Mental Health Counseling Individual per visit 
+CTDSS PCP 1247Z TT    Mental Health Counseling Individual per visit sub 
+client 
+CTDSS PCP 1247Z U2    Mental Health Counseling Individual per visit 1X only 
+CTDSS PCP 1247Z U2 TT   Mental Health Counseling Individual visit 1X only sub 
+client 
+CTDSS PCP 3022Z     PCA Overnight Hrly 
+CTDSS PCP 3022Z TT    PCA Overnight Hrly subsequent client 
+CTDSS PCP 3022Z U2    PCA Overnight Hrly 1X only 
+CTDSS PCP 3022Z U2 TT   PCA Overnight Hrly 1X only subsequent client 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 59 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 59 
+Proprietary & Confidential       
+  
+9.2 Tasks 
+Home Health Task List 
+Task ID Task Description Notes / Comments 
+130 Bathing/personal care/grooming Waiver/Non-Waiver 
+131 Oral Care Waiver/Non-Waiver 
+132 Turning, positioning and transferring Waiver/Non-Waiver 
+133 Skin Observation Waiver/Non-Waiver 
+134 Catheter care Waiver/Non-Waiver 
+135 Passive and Active Range of Motion Exercises Waiver/Non-Waiver 
+136 Feeding Waiver/Non-Waiver 
+137 Laundry Waiver/Non-Waiver 
+138 Safety/ Fall Precautions Waiver/Non-Waiver 
+139 HHA-Spcl Precautions-contact, airborne, bloodborne Waiver/Non-Waiver 
+140 Dressing/ Undressing Waiver/Non-Waiver 
+141 Toileting/ Bowel and Bladder Care Waiver/Non-Waiver 
+142 Assisting with Ambulation/Mobility Waiver/Non-Waiver 
+143 Skin Care/ Treatment Waiver/Non-Waiver 
+144 Ostomy Care Waiver/Non-Waiver 
+145 Meal preparation Waiver/Non-Waiver 
+146 Medication reminder/cueing Waiver/Non-Waiver 
+147 Light housework Waiver/Non-Waiver 
+148 Oxygen Precautions Waiver/Non-Waiver 
+149 Monitor intake and output Waiver/Non-Waiver 
+801 Nursing & Therapy Evaluation Non-Waiver Only 
+802 Health Maintenance/Mental status, Skin check, Vitals/Weight CK Non-Waiver Only 
+803 Wound Care Non-Waiver Only 
+804 Medication Pre-Pour/Administration Non-Waiver Only 
+805 Self-Feeding/Training Non-Waiver Only 
+806 Strength & Mobility Training Non-Waiver Only 
+807 Cognition Monitoring/Training Non-Waiver Only 
+--- Page 60 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 60 
+Proprietary & Confidential       
+  
+Task ID Task Description Notes / Comments 
+808 Safety Evaluation/Training Non-Waiver Only 
+809 Dysphagia Care/Swallowing Non-Waiver Only 
+810 Pain Management Non-Waiver Only 
+811 Manipulation of soft tissue, bones, joints & nerves Non-Waiver Only 
+812 Application of Compression Sleeves/Orthotic/Stockings/Prosthetic Non-Waiver Only 
+813 PRN Visits Non-Waiver Only 
+814 Oasis Assessment/Admission Non-Waiver Only 
+815 Stoma Care/J/G Tube (Care/Flush) Non-Waiver Only 
+816 Trach Care Non-Waiver Only 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 61 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 61 
+Proprietary & Confidential       
+  
+CTDSS Agency (ABP, CHP, PCP) Task List 
+Please reference the  CT EVV Finalized Task List for the correct task ID to use for your Program. 
+Task ID Task Description Notes / Comments 
+1 Bathing/personal care/grooming  
+2 Dressing/undressing  
+3 Oral Care  
+4 Toileting/bowel and bladder care  
+5 Turning, positioning and transferring  
+6 Assist with ambulation/mobility/transfer  
+7 Monitor Skin Condition  
+8 Skin care/observation  
+9 Skin care/ treatment  
+10 Catheter care (excluding catheter insertion or removal)  
+11 Ostomy care  
+12 Tracheotomy care  
+13 Assist tube feeding  
+14 Passive and Active Range Of Motion Exercises  
+15 Diet monitoring/meal preparation /education  
+16 Feeding  
+17 Medication reminder/cueing  
+18 Laundry  
+19 Light housework  
+21 Outdoor work (i.e. water plants, fill bird feeder)  
+22 Make bed  
+23 Grocery shop/ errands  
+25 Personal business (bill paying, communications)  
+26 Socialization/ Hobbies  
+27 Accompany to medical appointment  
+28 Accompany to other location  
+29 Snack  
+30 Bathing/personal care/grooming  
+--- Page 62 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 62 
+Proprietary & Confidential       
+  
+Task ID Task Description Notes / Comments 
+31 Dressing/undressing  
+32 Oral Care  
+33 Toileting/bowel and bladder care  
+34 Turning, positioning and transferring  
+35 Assist with ambulation/mobility/transfer  
+36 Diet monitoring/meal preparation education  
+37 Feeding  
+38 Medication reminder/cueing  
+39 Instruction, teaching, cueing  
+40 Supportive assistance, supervision  
+41 Interpersonal, social skills  
+42 Educational planning  
+43 Emergency and safety skills  
+44 Money management  
+50 Medication reminder/cueing  
+51 Laundry  
+52 Housekeeping  
+53 Outdoor work (i.e. water plants, fill bird feeder)  
+54 Make bed  
+55 Grocery shop/ errands  
+57 Personal business (bill paying, communications)  
+58 Meal preparation and planning  
+60 Heavy cleaning  
+61 Yardwork  
+62 Routine chores  
+70 Diet monitoring/meal preparation education  
+71 Medication reminder/cueing  
+72 Instruction, teaching, cueing  
+73 Interpersonal, social skills  
+74 Educational planning  
+--- Page 63 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 63 
+Proprietary & Confidential       
+  
+Task ID Task Description Notes / Comments 
+75 Emergency and safety skills  
+76 Money management  
+77 Safety/Monitoring  
+80 Diet monitoring/meal preparation education  
+81 Interpersonal, social skills  
+82 Instruction, teaching, cueing  
+83 Educational planning  
+84 Emergency and safety skills  
+85 Money management  
+88 Light Meal Prep  
+89 Medication Reminder  
+90 Safety/monitoring  
+91 Socialization/ Hobbies  
+92 Accompany on walks  
+93 Accompany to medical appointment  
+94 Accompany to other location  
+95 Shopping/ errands  
+96 Assist with phone calls  
+97 Mental health assessment and treatment  
+98 SPCSB - Service plan developing and hiring PCAs  
+99 Client has had a change in status  
+150 Educational time  
+151 Career exploration  
+152 Appropriate hygiene and social skills for work  
+153 Volunteer work  
+154 Workplace safety and mobility training  
+156 Work preparation and/or evaluation  
+157 Transportation  
+158 Perform work hours  
+ 
+--- Page 64 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 64 
+Proprietary & Confidential       
+  
+ 
+CTDSS Autism Agency Task List (AUP) 
+Task ID Task Description Notes / Comments 
+99 Client has had a change in status  
+160 AUT – Supervise and Train at Work Site  
+161 AUT – Instruction/Training Areas of Need  
+162 AUT – Implement Strategies on Service Plan  
+163 AUT – Training or Practice in Basic Life Skills  
+164 AUT – Instruct/Train to Live/Work in Community  
+165 AUT – Assist in Daily Activity/Daily Living Needs  
+166 AUT – Cueing and Supervisory of Activities  
+167 AUT – Support in Home/Community for Personal Goals  
+168 AUT – Provide When Unable to Care for Self  
+169 AUT – Relief for Those Normally Providing Care  
+170 AUT – Assess/Evaluate Behavior/Clinical Needs  
+171 AUT – Develop Behavioral Plan  
+172 AUT – Train Individual/Family/Providers to Implement Plan  
+173 AUT – Evaluate Effectiveness of Behavioral Plan  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 65 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 65 
+Proprietary & Confidential       
+  
+CTMHW Mental Health Waiver Task List (MHP) 
+Task ID Task Description Notes / Comments 
+97 Mental health assessment and treatment  
+99 Client has had a change in status  
+201 MHW - Bathing/personal care/grooming  
+202 MHW - Dressing/undressing  
+203 MHW - Oral Care  
+204 MHW - Diet monitoring/meal preparation education  
+205 MHW - Medication reminder/cueing  
+206 MHW - Interpersonal, social skills  
+207 MHW - Emergency and safety skills  
+208 MHW - Money management  
+209 MHW - Accompany to healthcare appointment  
+210 MHW - Assist with public transportation  
+211 MHW - Exercise  
+212 MHW - Facilitate/encourage Coping Skills  
+213 MHW - Facilitate Natural Supports  
+214 MHW - Grocery Shopping/Errands  
+215 MHW - Laundry  
+216 MHW - Maintain benefits/entitlements  
+217 MHW - Misc. Personal business  
+218 MHW - Rejecting Substance Abuse  
+219 MHW - Schedule healthcare appointments  
+220 MHW - Socialization/Hobbies  
+221 MHW - Housekeeping Max Assist  
+222 MHW - Housekeeping Mod Assist  
+223 MHW - Housekeeping Min Assist  
+224 MHW - Housekeeping Standby Assist  
+225 MHW - Housekeeping Independent  
+ 
+ 
+--- Page 66 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 66 
+Proprietary & Confidential       
+  
+9.3 Reason Codes 
+Reason Code Reason Note Required? Payer 
+01 Client Requested a Different Visit Time No CTDSS/CTHH/CTMHW 
+02 Staff Entered Wrong Santrax ID No CTDSS/CTHH/CTMHW 
+03 No Calls Received; Documentation Provided No CTDSS/CTHH/CTMHW 
+04 No Out Call; Documentation Provided No CTDSS/CTHH/CTMHW 
+05 Scheduling Error No CTDSS/CTHH/CTMHW 
+06 No In Call; Documentation Provided No CTDSS/CTHH/CTMHW 
+07 System Cancel No CTDSS/CTHH/CTMHW 
+08 Client Requested Staff Change No CTDSS/CTHH/CTMHW 
+09 Phone in Use by Patient/Family No CTDSS/CTHH/CTMHW 
+10 Phone Disconnected No CTDSS/CTHH/CTMHW 
+11 Client Emergency during scheduled visit No CTDSS/CTHH/CTMHW 
+12 Staff Late No CTDSS/CTHH/CTMHW 
+13 Staff Injured During Shift No CTDSS/CTHH/CTMHW 
+14 Staff Family Emergency During Shift No CTDSS/CTHH/CTMHW 
+15 Different Staff Reported for Shift No CTDSS/CTHH/CTMHW 
+16 Staff Had Transportation Issue No CTDSS/CTHH/CTMHW 
+17 Staff Scheduling Issue, Unable to Staff Entire Shift No CTDSS/CTHH/CTMHW 
+18 Additional Staff needed for this case No CTDSS/CTHH/CTMHW 
+19 Staff Arrived Early No CTDSS/CTHH/CTMHW 
+20 Severe Inclement Weather or Natural Disaster No CTDSS/CTHH/CTMHW 
+21 Staff Requested Time Off No CTDSS/CTHH/CTMHW 
+22 Other; Documentation Provided No CTDSS/CTHH/CTMHW 
+23 Phone not Functioning No CTDSS/CTHH/CTMHW 
+24 Check-In Not Functioning; Documentation Provided No CTDSS/CTHH/CTMHW 
+25 Check-Out Not Functioning; Documentation Provided No CTDSS/CTHH/CTMHW 
+26 Update to Tasks; Documentation Provided No CTDSS/CTHH/CTMHW 
+27 FVV Unavailable; Documentation Provided No CTDSS/CTHH/CTMHW 
+28 Schedule Change No CTDSS/CTHH/CTMHW 
+29 Extended Shift No CTDSS/CTHH/CTMHW 
+--- Page 67 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 67 
+Proprietary & Confidential       
+  
+Reason Code Reason Note Required? Payer 
+30 Blended Services Correction No CTDSS/CTHH/CTMHW 
+71 Virtual Visit No CTDSS/CTHH/CTMHW 
+ 
+ 
+ 
+9.4 Exceptions 
+ 
+Exception Code Acknowledge/Fix Exception Name Description 
+0 Fix: Resubmit visit Unknown Client 
+Exception for a visit that was performed for a recipient of care that is not yet 
+entered or not found in the EVV system. 
+Note: Visit data will reject on intake. Client on visit must match to an existing 
+client within the distinct Provider Agency Account. 
+1 Fix: Resubmit visit Unknown Employee 
+(Telephony only) Exception for a visit that was performed by a caregiver who 
+was not yet entered or not found in the EVV system (At the time the visit was 
+recorded). 
+Note: Visit data will reject on intake. Client on visit must match to an existing 
+client within the distinct Provider Agency Account. 
+3 Fix: Resubmit visit Visits Without In-Calls 
+Exception thrown when a visit is recorded without an "in" call that began the 
+visit. 
+Note: All visits will require the Call segment to be provided. 
+4 Fix: Resubmit visit Visits Without Out-Calls 
+Exception thrown when a visit is recorded without an "out" call that 
+completed the visit. 
+Note: All visits will require the Call segment to be provided. 
+15 
+Acknowledge: submit 
+VisitExceptionAcknowledgement 
+segment 
+Unmatched Client ID / Phone (Telephony only) Exception when the visit was recorded from a phone 
+number that was not matched to a recipient of care in the EVV system. 
+23 Fix: Resubmit visit Missing Service 
+Exception when the service provided during a visit is not recorded or present 
+in the system. 
+Note: Visit data will reject if the inbound service (ProcedureCode/Revenue 
+Center Code) does not match a record defined in the specification Appendix. 
+ 
+--- Page 68 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 68 
+Proprietary & Confidential       
+  
+9.5 Acronyms & Definitions 
+ 
+Abbreviation Name 
+AKA Also Known As 
+API Application Programming Interface 
+GMT Greenwich Mean Time 
+HTTP Hyper Text Transfer Protocol 
+TBD To Be Determined 
+UTC Universal Time Coordinated 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 69 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 69 
+Proprietary & Confidential       
+  
+9.6 Terminology 
+ 
+Sandata Terminology Other Possible References 
+Agency Agency Provider 
+Provider Account 
+Billing Agency 
+Authorization Service Plan 
+Prior Auth 
+Client Individual 
+Patient 
+Member 
+Recipient 
+Beneficiary 
+Contract Program 
+Program Code 
+Employee Caregiver 
+Admin 
+HCPCS Healthcare Common Procedure Coding System 
+Payer Admission 
+Insurance Company 
+Contract 
+Managed Care Organization (MCO) 
+State 
+Provider Agency 
+Third-Party Administrator (TPA) 
+RCC Revenue Center Code 
+ 
+  
+--- Page 70 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 70 
+Proprietary & Confidential       
+  
+9.7 Field Level Errors 
+ 
+Section Field Name Description 
+Client General ClientFirstName Only the following special character will be accepted: 
+ Alpha Letters 
+ Hyphens 
+ Periods 
+ Apostrophe 
+All other special characters will be rejected. 
+Client General ClientLastName Only the following special character will be accepted: 
+ Alpha Letters 
+ Hyphens 
+ Periods 
+ Apostrophe 
+All other special characters will be rejected. 
+Client General ClientQualifier The value is the actual string value “ClientQualifier” and is 
+required to be mixed case. 
+Employee General EmployeeLastName Only the following special character will be accepted: 
+ Alpha Letters 
+ Hyphens 
+ Periods 
+ Apostrophe 
+All other special characters will be rejected. 
+Employee General EmployeeFirstName Only the following special character will be accepted: 
+ Alpha Letters 
+ Hyphens 
+ Periods 
+ Apostrophe 
+All other special characters will be rejected. 
+Employee General EmployeeQualifier The value is the actual string value “EmployeeQualifier” 
+and is required to be mixed case. 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 71 ---
+ 
+CT-(DSS-DMHAS)_EVV_Vendor_Specification v1.5                       Page  | 71 
+Proprietary & Confidential       
+  
+9.8 Time Zone List 
+ 
+This is the common list of time zones we used. If your area is not covered by this list, please contact Sandata support to get additional time zone 
+value that we accept. Please note that the value sent must exactly match the value and case shown. 
+ 
+Text Value Daylight Saving 
+US/Alaska Active 
+US/Aleutian Active 
+US/Arizona Inactive 
+US/Central Active 
+US/East-Indiana Active 
+US/Eastern Active 
+US/Hawaii Inactive 
+US/Indiana-Starke Active 
+US/Michigan Active 
+US/Mountain Active 
+US/Pacific Active 
+US/Samoa Inactive 
+America/Indiana/Indianapolis Active 
+America/Indiana/Knox Active 
+America/Indiana/Marengo Active 
+America/Indiana/Petersburg Active 
+America/Indiana/Vevay Active 
+America/Indiana/Vincennes Active 
+ 

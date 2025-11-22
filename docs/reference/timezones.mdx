@@ -1,0 +1,329 @@
+---
+title: 'Timezones'
+description: 'Supported timezone values for CT EVV API'
+---
+
+## Overview
+
+All times in the CT EVV API must be submitted in UTC format, but you must also specify the timezone where the visit occurred.
+
+<Info>
+  **For Connecticut**: Use `US/Eastern` for all visits
+</Info>
+
+## Required Format
+
+### DateTime Fields
+All date/time fields must be in UTC format:
+
+```
+YYYY-MM-DDTHH:MM:SSZ
+```
+
+**Example**: `2024-01-15T14:30:00Z`
+
+### Timezone Fields
+Timezone fields use IANA timezone database names:
+
+```
+US/Eastern
+```
+
+## Connecticut Timezone
+
+**Primary Timezone**: `US/Eastern`
+
+- **Standard Time**: EST (UTC-5)
+- **Daylight Saving**: EDT (UTC-4)
+- **Daylight Saving Active**: Second Sunday in March to First Sunday in November
+
+### Usage in API
+
+```json
+{
+  "ClientTimeZone": "US/Eastern",
+  "VisitTimeZone": "US/Eastern"
+}
+```
+
+## Daylight Saving Time
+
+The system automatically handles daylight saving time transitions:
+
+<Tabs>
+  <Tab title="Standard Time (Winter)">
+    **November - March**
+    
+    EST = UTC - 5 hours
+    
+    ```
+    Visit at 9:00 AM EST = 14:00:00Z UTC
+    ```
+  </Tab>
+  
+  <Tab title="Daylight Time (Summer)">
+    **March - November**
+    
+    EDT = UTC - 4 hours
+    
+    ```
+    Visit at 9:00 AM EDT = 13:00:00Z UTC
+    ```
+  </Tab>
+</Tabs>
+
+## Time Conversion Examples
+
+### Winter (Standard Time)
+
+| Local Time (EST) | UTC Time |
+|------------------|----------|
+| 9:00 AM | 14:00:00Z |
+| 12:00 PM | 17:00:00Z |
+| 3:00 PM | 20:00:00Z |
+| 6:00 PM | 23:00:00Z |
+
+### Summer (Daylight Time)
+
+| Local Time (EDT) | UTC Time |
+|------------------|----------|
+| 9:00 AM | 13:00:00Z |
+| 12:00 PM | 16:00:00Z |
+| 3:00 PM | 19:00:00Z |
+| 6:00 PM | 22:00:00Z |
+
+## Complete Timezone List
+
+While Connecticut uses `US/Eastern`, the system supports other US timezones:
+
+| Timezone | Daylight Saving | UTC Offset (Standard) | UTC Offset (Daylight) |
+|----------|-----------------|----------------------|----------------------|
+| **US/Eastern** | Active | UTC-5 | UTC-4 |
+| US/Central | Active | UTC-6 | UTC-5 |
+| US/Mountain | Active | UTC-7 | UTC-6 |
+| US/Pacific | Active | UTC-8 | UTC-7 |
+| US/Alaska | Active | UTC-9 | UTC-8 |
+| US/Aleutian | Active | UTC-10 | UTC-9 |
+| US/Arizona | Inactive | UTC-7 | UTC-7 |
+| US/Hawaii | Inactive | UTC-10 | UTC-10 |
+
+<Info>
+  **Note**: For Connecticut EVV, always use `US/Eastern`
+</Info>
+
+## Validation Rules
+
+<Warning>
+  **Important Timezone Rules**
+</Warning>
+
+### Required Fields
+
+- **ClientTimeZone**: Required for all clients
+- **VisitTimeZone**: Required for all visits
+- Must be exact string match (case sensitive)
+
+### Format Requirements
+
+- Must use IANA timezone database format
+- Must be exact match: `US/Eastern` (not `EST` or `Eastern`)
+- No abbreviations allowed
+- No custom timezone offsets
+
+### Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Invalid timezone | Used "EST" instead of "US/Eastern" | Use full IANA format |
+| Missing timezone | ClientTimeZone not provided | Add required timezone field |
+| Wrong format | Used offset like "-05:00" | Use IANA name "US/Eastern" |
+| Case mismatch | Used "us/eastern" | Use exact case "US/Eastern" |
+
+## Code Examples
+
+### JavaScript
+
+```javascript
+// Convert local time to UTC
+const localTime = new Date('2024-01-15 09:00:00');
+const utcTime = localTime.toISOString(); // "2024-01-15T14:00:00.000Z"
+
+// Format for API
+const apiTime = utcTime.slice(0, 19) + 'Z'; // "2024-01-15T14:00:00Z"
+
+// Submit with timezone
+const visit = {
+  VisitTimeZone: "US/Eastern",
+  Calls: [{
+    CallDateTime: apiTime,
+    CallAssignment: "Time In"
+  }]
+};
+```
+
+### Python
+
+```python
+from datetime import datetime
+import pytz
+
+# Convert local time to UTC
+eastern = pytz.timezone('US/Eastern')
+local_time = eastern.localize(datetime(2024, 1, 15, 9, 0, 0))
+utc_time = local_time.astimezone(pytz.UTC)
+
+# Format for API
+api_time = utc_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+# Submit with timezone
+visit = {
+    "VisitTimeZone": "US/Eastern",
+    "Calls": [{
+        "CallDateTime": api_time,
+        "CallAssignment": "Time In"
+    }]
+}
+```
+
+### C#
+
+```csharp
+using System;
+
+// Convert local time to UTC
+var easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+var localTime = new DateTime(2024, 1, 15, 9, 0, 0);
+var utcTime = TimeZoneInfo.ConvertTimeToUtc(localTime, easternZone);
+
+// Format for API
+var apiTime = utcTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+// Submit with timezone
+var visit = new {
+    VisitTimeZone = "US/Eastern",
+    Calls = new[] {
+        new {
+            CallDateTime = apiTime,
+            CallAssignment = "Time In"
+        }
+    }
+};
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always Use UTC">
+    **Store and transmit times in UTC**:
+    - Convert local times to UTC before submission
+    - Store UTC in your database
+    - Convert to local time only for display
+    - Avoid timezone confusion
+  </Accordion>
+  
+  <Accordion title="Handle DST Transitions">
+    **Be aware of daylight saving changes**:
+    - Spring forward: 2:00 AM becomes 3:00 AM (March)
+    - Fall back: 2:00 AM becomes 1:00 AM (November)
+    - Use timezone libraries to handle automatically
+    - Test around transition dates
+  </Accordion>
+  
+  <Accordion title="Validate Before Submission">
+    **Check timezone values**:
+    - Verify exact string match
+    - Use constants in your code
+    - Validate against allowed list
+    - Test in UAT environment
+  </Accordion>
+  
+  <Accordion title="Consistent Usage">
+    **Use same timezone throughout**:
+    - ClientTimeZone = "US/Eastern"
+    - VisitTimeZone = "US/Eastern"
+    - Don't mix timezones
+    - Document timezone policy
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Time Appears Wrong">
+    **Problem**: Visit time shows different than expected
+    
+    **Cause**: Not accounting for UTC conversion
+    
+    **Solution**:
+    - Verify local time was converted to UTC
+    - Check if DST is active
+    - Use timezone conversion library
+    - Test with known values
+  </Accordion>
+  
+  <Accordion title="Timezone Rejected">
+    **Problem**: Timezone value rejected by API
+    
+    **Cause**: Wrong format or spelling
+    
+    **Solution**:
+    - Use exact value: "US/Eastern"
+    - Check case sensitivity
+    - Don't use abbreviations
+    - Copy from documentation
+  </Accordion>
+  
+  <Accordion title="DST Confusion">
+    **Problem**: Times off by one hour seasonally
+    
+    **Cause**: Not handling DST transition
+    
+    **Solution**:
+    - Use timezone-aware libraries
+    - Don't manually calculate offsets
+    - Test around March and November
+    - Let system handle DST
+  </Accordion>
+</AccordionGroup>
+
+## Quick Reference
+
+### For Connecticut EVV
+
+**Always use**:
+- **Timezone**: `US/Eastern`
+- **DateTime Format**: `YYYY-MM-DDTHH:MM:SSZ`
+- **All times in UTC**: Yes
+
+**Example Visit**:
+```json
+{
+  "VisitTimeZone": "US/Eastern",
+  "Calls": [{
+    "CallDateTime": "2024-01-15T14:00:00Z",
+    "CallAssignment": "Time In"
+  }, {
+    "CallDateTime": "2024-01-15T18:00:00Z",
+    "CallAssignment": "Time Out"
+  }]
+}
+```
+
+This represents a visit from 9:00 AM to 1:00 PM Eastern Time.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Types" icon="database" href="/concepts/data-types">
+    Learn about all data type formats
+  </Card>
+  <Card title="Create Client" icon="user" href="/api-reference/client/create">
+    Submit clients with timezone
+  </Card>
+  <Card title="Create Visit" icon="calendar-plus" href="/api-reference/visit/create">
+    Submit visits with proper times
+  </Card>
+  <Card title="Business Rules" icon="book" href="/business-rules/overview">
+    Understand time validation rules
+  </Card>
+</CardGroup>

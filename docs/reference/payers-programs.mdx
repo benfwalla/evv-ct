@@ -1,0 +1,243 @@
+---
+title: 'Payers & Programs'
+description: 'Valid payer IDs and program codes for CT EVV'
+---
+
+## Overview
+
+The CT EVV system supports multiple payers and programs. Each visit must specify a valid PayerID and PayerProgram combination.
+
+## Payer IDs
+
+<CardGroup cols={3}>
+  <Card title="CTDSS" icon="hospital">
+    Connecticut Department of Social Services
+  </Card>
+  <Card title="CTHH" icon="house-medical">
+    CT Home Health
+  </Card>
+  <Card title="CTMHW" icon="brain">
+    CT Mental Health Waiver
+  </Card>
+</CardGroup>
+
+## Valid Payer/Program Combinations
+
+### CTDSS Programs
+
+<AccordionGroup>
+  <Accordion title="Waiver Home Health Programs">
+    **Payer**: `CTDSS`
+    
+    | Program Code | Program Name | Description |
+    |--------------|--------------|-------------|
+    | **ABI** | Acquired Brain Injury Waiver | Home health services for ABI clients |
+    | **AUI** | Autism Waiver | Home health services for autism clients |
+    | **CHI** | CT Home Care Waiver | Home health waiver services |
+    | **PCI** | Personal Care Waiver | Personal care waiver services |
+    
+    **Service Types**: Nursing, therapy, home health aide services
+    
+    **Tasks**: Optional but recommended
+  </Accordion>
+  
+  <Accordion title="Non-Clinical Programs">
+    **Payer**: `CTDSS`
+    
+    | Program Code | Program Name | Description |
+    |--------------|--------------|-------------|
+    | **ABP** | Acquired Brain Injury Non-Clinical | Non-clinical services for ABI |
+    | **AUP** | Autism Professional | Professional services for autism |
+    | **CHP** | CT Home Care Program | Non-clinical home care |
+    | **PCP** | Personal Care Assistant | Personal care assistant services |
+    
+    **Service Types**: Personal care, companion, homemaker, respite
+    
+    **Tasks**: **REQUIRED** - Must include task IDs
+  </Accordion>
+</AccordionGroup>
+
+### CTHH Programs
+
+<AccordionGroup>
+  <Accordion title="Non-Waiver Home Health">
+    **Payer**: `CTHH`
+    
+    | Program Code | Program Name | Description |
+    |--------------|--------------|-------------|
+    | **HHI** | Home Health Non-Waiver | Standard home health services |
+    
+    **Service Types**: Nursing, therapy, home health aide, medication administration
+    
+    **Tasks**: Optional
+  </Accordion>
+</AccordionGroup>
+
+### CTMHW Programs
+
+<AccordionGroup>
+  <Accordion title="Mental Health Waiver">
+    **Payer**: `CTMHW`
+    
+    | Program Code | Program Name | Description |
+    |--------------|--------------|-------------|
+    | **MHP** | Mental Health Program | Mental health waiver services |
+    
+    **Service Types**: Recovery assistance, community support, peer services, counseling
+    
+    **Tasks**: **REQUIRED** - Must include task IDs
+  </Accordion>
+</AccordionGroup>
+
+## Complete Payer/Program Matrix
+
+| PayerID | Program Code | Program Name | Tasks Required | Procedure Code Appendix |
+|---------|--------------|--------------|----------------|------------------------|
+| **CTHH** | HHI | Home Health Non-Waiver | No | 9.1.1 |
+| **CTDSS** | ABI | Acquired Brain Injury Waiver | No | 9.1.2 |
+| **CTDSS** | AUI | Autism Waiver | No | 9.1.2 |
+| **CTDSS** | CHI | CT Home Care Waiver | No | 9.1.2 |
+| **CTDSS** | PCI | Personal Care Waiver | No | 9.1.2 |
+| **CTDSS** | ABP | Acquired Brain Injury Non-Clinical | **Yes** | 9.1.4, 9.1.5 |
+| **CTDSS** | AUP | Autism Professional | **Yes** | 9.1.6, 9.1.7 |
+| **CTDSS** | CHP | CT Home Care Program | **Yes** | 9.1.8 |
+| **CTDSS** | PCP | Personal Care Assistant | **Yes** | 9.1.9 |
+| **CTMHW** | MHP | Mental Health Program | **Yes** | 9.1.3 |
+
+## Usage in API Calls
+
+### Client Payer Information
+
+```json
+{
+  "ClientPayerInformation": [{
+    "PayerID": "CTHH",
+    "PayerProgram": "HHI",
+    "ProcedureCode": "T1004",
+    "ClientStatus": "02"
+  }]
+}
+```
+
+### Visit Information
+
+```json
+{
+  "PayerID": "CTDSS",
+  "PayerProgram": "ABP",
+  "ProcedureCode": "1021Z",
+  "Tasks": [{
+    "TaskID": "1",
+    "TaskRefused": false
+  }]
+}
+```
+
+## Validation Rules
+
+<Warning>
+  **Important Validation Rules**
+</Warning>
+
+### Valid Combinations Only
+
+The system will reject invalid payer/program combinations:
+
+✅ **Valid**:
+- `CTHH` + `HHI`
+- `CTDSS` + `ABI`, `AUI`, `CHI`, `PCI`, `ABP`, `AUP`, `CHP`, `PCP`
+- `CTMHW` + `MHP`
+
+❌ **Invalid**:
+- `CTHH` + `ABP` (wrong payer)
+- `CTMHW` + `HHI` (wrong payer)
+- `CTDSS` + `MHP` (wrong payer)
+
+### Task Requirements
+
+**If PayerProgram is ABP, AUP, CHP, PCP, or MHP**:
+- Tasks segment is **REQUIRED**
+- At least one valid TaskID must be provided
+- TaskID must match program's task list
+
+**If PayerProgram is HHI, ABI, AUI, CHI, or PCI**:
+- Tasks are optional
+- If provided, must be valid task IDs
+
+### Procedure Code Validation
+
+Each payer/program combination has specific valid procedure codes:
+
+```json
+// Valid for CTHH/HHI
+{
+  "PayerID": "CTHH",
+  "PayerProgram": "HHI",
+  "ProcedureCode": "T1004"  // Valid
+}
+
+// Invalid combination
+{
+  "PayerID": "CTHH",
+  "PayerProgram": "HHI",
+  "ProcedureCode": "1021Z"  // Invalid - this is for CTDSS/ABP
+}
+```
+
+## Program-Specific Requirements
+
+### Home Health Programs (HHI, ABI, AUI, CHI, PCI)
+
+**Service Focus**: Medical and therapeutic services
+- Nursing care (RN, LPN)
+- Physical therapy
+- Occupational therapy
+- Speech therapy
+- Home health aide services
+
+**Documentation**: Standard home health documentation
+
+### Non-Clinical Programs (ABP, AUP, CHP, PCP)
+
+**Service Focus**: Personal care and support services
+- Personal care assistance
+- Companion services
+- Homemaker services
+- Respite care
+- Community living support
+
+**Documentation**: Task completion required
+
+### Mental Health Program (MHP)
+
+**Service Focus**: Mental health and recovery services
+- Recovery assistance
+- Community support
+- Peer services
+- Mental health counseling
+- Case management
+
+**Documentation**: Task completion and progress notes required
+
+## Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Invalid payer/program | Wrong combination | Use valid combinations from matrix |
+| Missing tasks | Tasks required but not provided | Add Tasks segment for ABP/AUP/CHP/PCP/MHP |
+| Invalid procedure code | Code doesn't match program | Use codes from correct appendix |
+| Wrong payer ID | Typo or incorrect payer | Use exact values: CTDSS, CTHH, or CTMHW |
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Procedure Codes" icon="file-medical" href="/reference/procedure-codes">
+    View valid procedure codes by program
+  </Card>
+  <Card title="Tasks" icon="list-check" href="/reference/tasks">
+    View task IDs by program
+  </Card>
+  <Card title="Create Visit" icon="calendar-plus" href="/api-reference/visit/create">
+    Submit visits with payer/program
+  </Card>
+</CardGroup>

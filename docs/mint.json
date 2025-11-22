@@ -1,0 +1,75 @@
+{
+  "name": "CT EVV API Documentation",
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "Reference Data",
+      "url": "reference"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "authentication",
+        "environments",
+        "business-rules"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/introduction"
+      ]
+    },
+    {
+      "group": "Endpoints",
+      "pages": [
+        "api-reference/client/overview",
+        "api-reference/client/create",
+        "api-reference/client/status",
+        "api-reference/employee/overview",
+        "api-reference/employee/create",
+        "api-reference/employee/status",
+        "api-reference/visit/overview",
+        "api-reference/visit/create",
+        "api-reference/visit/status"
+      ]
+    },
+    {
+      "group": "Reference Data",
+      "pages": [
+        "reference/payers-programs",
+        "reference/procedure-codes",
+        "reference/tasks",
+        "reference/reason-codes",
+        "reference/exceptions",
+        "reference/timezones"
+      ]
+    }
+  ],
+  "api": {
+    "baseUrl": "https://api.sandata.com",
+    "auth": {
+      "method": "basic"
+    },
+    "playground": {
+      "mode": "show"
+    }
+  }
+}

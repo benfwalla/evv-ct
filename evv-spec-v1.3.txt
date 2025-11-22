@@ -1,0 +1,1357 @@
+
+--- Page 1 ---
+ 
+ 
+August 18, 2023 
+Sandata Technologies, LLC 
+sandata.com 
+ 
+Jason Feder, Lead Director Business Readiness  
+jfeder@sandata.com  
+516.484.4400  X4343 
+ 
+ 
+--- Page 2 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+2 
+Sandata Specification User Guide ................................ ................................ ...... 1 
+EVV Vendor REST API v1.3 ............................................................................................................... 1 
+Revision History ................................ ................................ ................................ .. 4 
+Specification User Guide – REST API ................................ ................................ . 5 
+Overview ................................................................................................................................... 5 
+Intended Audience ................................................................................................................... 5 
+Real-Time Transactions ........................................................................................................... 5 
+Representational State Transfer (REST) Interface ................................ ............ 6 
+HTTPS (TLS 1.2) ........................................................................................................................ 6 
+Real-Time Processing Interfaces ............................................................................................ 6 
+Transmission Method ............................................................................................................... 6 
+Transmission Frequency .......................................................................................................... 7 
+Transmission Limits .................................................................................................................. 7 
+Data Type Format Details ........................................................................................................ 7 
+RESTful API Response .............................................................................................................. 8 
+Record Processing ................................ ................................ ...............................  9 
+New Record and Updates ........................................................................................................ 9 
+Rejected Record Process ......................................................................................................... 9 
+Specification Reading Tips ................................ ................................ ................ 11 
+Detail Specification Record Logic ................................ ................................ ..... 11 
+Standard date/time Format ................................................................................................... 11 
+EVV Vendor ............................................................................................................................. 11 
+EVV Vendor Data Transmission Rules ........................................................................................... 12 
+Alternate Data Collection System Responsibility ........................................................................ 12 
+EVV Vendor Data Processing Rules ............................................................................................... 14 
+EVV Vendor Client Data Rules ....................................................................................................... 14 
+EVV Vendor Employee Data Rules ................................................................................................ 15 
+EVV Vendor Visit Data Rules .......................................................................................................... 15 
+--- Page 3 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+3 
+EVV Vendor Sequencing ................................................................................................................. 18 
+EVV Vendor Sequence Rules: ......................................................................................................... 18 
+EVV Vendor Message Acknowledgement (ACK) and Transaction ID........................................ 19 
+EVV Vendor Response for Record Status ............................................................................ 19 
+Technical Companion and Examples ................................ ................................  21 
+API Location ............................................................................................................................ 21 
+Authentication Header .......................................................................................................... 21 
+Account Header ...................................................................................................................... 22 
+Content-Type Header ............................................................................................................ 22 
+Suggested Workflow .............................................................................................................. 22 
+Appendix ................................ ................................ ................................ ............ 24 
+Field Level Errors .................................................................................................................... 24 
+Terminology Legend ............................................................................................................... 26 
+Acronyms .......................................................................................................................................... 27 
+JSON examples: ...................................................................................................................... 27 
+Request Payload Example ............................................................................................................... 27 
+Sample Responses ............................................................................................................................ 31 
+ 
+  
+--- Page 4 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+4 
+8/18/2021 1.0 Clella Newcomb Document Creation 
+11/15/2021 1.1 Clella Newcomb Update Sample Visit transmission JSON for 
+Task child segment 
+3/29/2023 1.2 Carolyn Ostrom, 
+Jason Feder 
+Added further details and scenarios regarding 
+Call Times, Adjusted Times, BillVisit Logic, 
+Visit Changes, Call Segments 
+8/18/2023 1.3 Jason Feder, 
+Carolyn Ostrom 
+USA VPN is required 
+Addition of the Field Level Errors table 
+Added an example of a repeating segment to 
+ClientPayerInformation segment JSON 
+Updated the Rejected Record Process 
+paragraph on page 9 for further clarification 
+Updated the Change Log Transmission bullet 
+on page 12 for further clarification 
+Updated the Vendor Visit Data Rules section 
+on page 14 for further clarification 
+Updated to include tips regarding how to 
+obtain the GET status on page 28 
+ 
+ 
+ 
+ 
+  
+--- Page 5 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+5 
+This specification user guide is intended to document the requirements for using the 
+Sandata Real Time Interface for receiving information into the Sandata Aggregator.   
+ 
+A program specification is created for each customer implementation to specify agreed 
+upon frequencies, expected values for fields and those fields which will be omitted or left 
+to the sender’s discretion. 
+ 
+This document contains technical information and examples for each entity type. 
+ 
+The intended audience of this document is: 
+• Project Management and Technical teams at the state, EVV vendors or agencies 
+who will be implementing this interface. 
+ 
+Data may be sent via a real-time RESTful API for processing.  Sandata will take each 
+request as it is received, process the data, and return a response.  
+ 
+Sandata will provide real-time RESTful API endpoints for the state, EVV vendors or 
+agencies in a UAT environment for user acceptance testing as well as production. This 
+document contains the technical details for utilizing this API. The API is designed to be a 
+service-oriented architecture (SOA).  All transactions will utilize the JSON format which is 
+the JAVA equivalent to XML.  JSON, like XML is self-describing.  A WADL (equivalent to 
+the WSDL) will be provided using the API documentation provided by Swagger. 
+ 
+State, EVV vendors or agencies must be able to send and consume data and responses in a 
+JSON format.  JSON allows multiple ‘child’ entities for a parent (See JSON Example: 
+Request Payload Example in Appendix).  
+ 
+Please be aware that all data must be sent to the Sandata API via a VPN within the USA. 
+Any transactions sent from outside of the USA may be rejected.  
+ 
+NOTE: For testing purposes, generic, de-identified files will be provided, or data for 
+testing will be identified by the state, EVV vendors or agencies based on available or 
+constructed data. For payers, testing these files will be part of the overall system testing 
+--- Page 6 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+6 
+process per mutually agreed upon dates determined for joint testing and included in the 
+overall project plan. 
+Sandata has developed a RESTful interface that allows for a client to send data as real 
+time transactions with appropriate responses rather than in batches of text files for 
+periodic processing. 
+ 
+In a Sandata RESTful web service, requests made to a resource's URL will elicit a response 
+with a payload formatted in JSON. The response can confirm that some alteration has 
+been made to the stored resource, and the response will provide any errors that may have 
+occurred. When HTTP is used for processing members, you will only need to execute a 
+POST HTTPS request method. 
+ 
+Sandata’s RESTful interfaces support TLS v1.2 (a successor to SSL) which provides a layer 
+of security and reliability by exchanging PHI information as encrypted data packets 
+between Sandata and other state, EVV vendors or agencies systems. 
+ 
+The real-time processing interfaces refer to Sandata’s RESTful HTTPS endpoints for 
+receiving data. Sandata will provide the state, EVV vendors or agencies with URL 
+endpoints for UAT and Production. Sandata will also provide the state, EVV vendors or 
+agencies with a username and password that will use Basic Authentication to validate the 
+request. The state, EVV vendors or agencies will receive a 401 HTTP error code if the 
+username and/or password does not match. 
+ 
+Sandata supports an SOA architecture.  Sandata will provide an API for state, EVV 
+vendors or agency’s internal IT organizations to utilize.  Sandata will provide sample JSON 
+or XML format information (Java equivalent to XML), as well as the WADL (JSON 
+equivalent of the WSDL) to those parties developing the interface.  This specification will 
+include the rest endpoints needed to request status on record acceptance /rejection. 
+--- Page 7 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+7 
+ 
+See Appendix for sample transmissions. 
+For optimal system performance, it is recommended that specification data be sent in 
+near real time. It is expected that information is sent as it is added/changed/deleted in the 
+corresponding EVV Vendor system. Rejection responses will be delivered in a separate 
+API call that is initiated by the EVV Vendor–in near real time. 
+ 
+A single transaction may contain from a minimum of 1 to a maximum of 5,000 records.  A 
+single record set would include all associated elements.  
+ 
+If the group size exceeds the maximum limit for the group, the entire transaction will be 
+rejected. 
+ 
+During peak loads, records received may be queued and processed as resources permit.  
+Other transactions received for the specification will be queued and processed in order. 
+ 
+The user will send information in JSON or XML format. JSON and XML allow multiple 
+”child” entities for a single parent. 
+ 
+The format of the information sent must match exactly the format defined in the 
+specification and be sent via web service using JSON or XML.  Ultimately, we support only 
+three data types during transmission:  string, number, and Boolean.  The specification 
+references additional data types to ensure that data is received in the expected formats 
+and appropriate record level editing can be incorporated.  Except where numeric, the 
+assumed JSON and XML format should be string.  The data type provided in the 
+specification is based on the following field definitions. 
+ 
+See Appendix for samples transmissions. 
+ 
+Note that the format is case sensitive.  All field names must be provided in EXACTLY the 
+casing used in the definitions below. Sandata recommends using RESTful services with 
+JSON formatting.  
+ 
+ 
+--- Page 8 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+8 
+Data Type Description Example 
+DateTime 
+The date and time is represented as a string 
+with the following format: YYYY-MM-
+DDTHH:MM:SSZ 
+All times will be provided in UTC.  
+If time is not material, provide as expected. 
+2016-12-20T16:10:28Z 
+Date 
+(only Date) 
+The data is represented as a string with the 
+following format:  
+YYYY-MM-DD 
+Date only will be sent in UTC format. 
+2016-12-20 
+Timezone 
+All time for tracking visits will be in UTC. 
+The Time zone name expected in each 
+transaction is the actual Time zone where 
+the event took place. (i.e. US/Eastern) 
+A complete list of time 
+zones can be found in the 
+appendix of this 
+document. 
+String 
+A string is a row of zero or more characters 
+which can include letters, numbers, or 
+other types of characters as a unit, not an 
+array of single characters. (i.e. plain text). 
+“This is a string”  
+(See Wikipedia String) 
+Integer 
+An integer is a numeric value without a 
+decimal. Integers are whole numbers and 
+can be positive or negative. 
+52110 (positive)  
+-87721 (negative)  
+(See Wikipedia Integer) 
+Decimal A floating point number is referred to as a 
+decimal. Can be positive or negative. 
+8221.231 (positive) 
+-71.214 (negative)  
+(See Wikipedia Decimal) 
+Boolean A logic predicate indicator that can be 
+either true or false. 
+True 
+False 
+See Wikipedia Boolean 
+The response is contained as part of the “data” entity which is part of the standard 
+Sandata HttpResponse entity.  This response may be augmented over time to contain 
+additional information.  Consumers of the API should be able to handle responses that 
+contain additional data elements. 
+• id – This field is a RESTful service transaction globally unique ID (UUID) which is 
+generated by Sandata. Please log this UUID as it will help Sandata Tier3 support 
+and troubleshoot any issues. 
+• status – This status has two possible values: 
+o SUCCESS: Indicates that the request was received and processed 
+successfully by the Sandata backend. 
+o FAILED: Indicates that there was some error detected by the Sandata 
+backend. E.g. 500 Server Error 
+o NOTE: Both of these states are returned with an HTTP 200 response code.  
+--- Page 9 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+9 
+• messageSummary – This field This field will contain either null for 
+status=SUCCESS or “Parameter Error” for status=FAILED.  This would typically 
+occur for a “POST” without BODY. 
+• messageDetail – This field will contain either null for status=SUCCESS or a 
+detailed service error message for status=FAILED.  E.g. “Database Unavailable” 
+• failedCount – the number of items in the request that resulted in some error 
+• succeededCount – the number of items in the request that ended in a successful 
+result 
+• data – This entity will contain details of the JSON response.  Examples can be 
+provided upon request. 
+New records and updates for previously sent data should be provided using the interface 
+specification. If a set of records is sent (for example: client, employee, or visit), all 
+associated applicable elements should be sent.  Partial updates will be rejected. An update 
+that deletes a record will not actually remove information since Sandata will not 
+physically delete information. The deleted record/s will no longer be visible on the 
+application. However, the record history will maintain the original data received. 
+ 
+When records are received, Sandata will return against each group a transaction ID 
+(UUID) and an ACK (acknowledgment of receipt). This transaction ID can be queried by 
+the caller for status of the records in the transaction. This process will allow the 
+provider/vendor to GET status on any of the records that may have been rejected.  This 
+process does not apply to Claims Validation. The message flow example below is for an 
+employee record. Please note that if the entire POST submission fails with the first 
+acknowledgement (ACK), you will not be able to perform the GET status, until at least part 
+of the POST successfully passes the ACK. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+--- Page 10 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+10 
+ 
+ 
+ 
+  
+
+--- Page 11 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+11 
+• Segments are denoted as required or optional in the applicable specification and 
+are a named field for transmission. 
+o Example EVV Vendor SegmentName: Provider Identification 
+• The fields listed in the specification are the fields available for transmission to 
+Sandata EVV. 
+• All data elements/fields in the specification will indicate if NULL is an acceptable 
+value in the Validation Rule column. If the element does not state that NULL is an 
+acceptable value, that element is required. 
+•  Required fields must have data, otherwise the system will reject the record. 
+• The file will be rejected if a header column name is unknown to the Sandata system. 
+• If a field is not required, it does not need to be included. 
+• The Field Information element will be required as part of the header information 
+provided for all EVV Vendor transmissions.  This information will be compared to 
+the connection being used within the interface to ensure that the transmission is 
+appropriate.  If this match cannot be validated, the transmission will be rejected. 
+Field Information will be JSON Employee | JSON Client | JSON Visit. 
+• As part of the implementation process, required fields may be adjusted and the 
+available fields may be reduced based on the program specifics. 
+• All JSON element format is case sensitive.  All field names must be provided in 
+EXACTLY the casing used in the definitions below. Specifically, this includes 
+reference values (String match) denoted in “double quotes”. 
+See Appendix for sample transmissions. 
+ 
+ 
+ 
+  
+All dates and times provided must be sent in UTC (Coordinated Universal Time) format in 
+GMT.  
+ 
+
+--- Page 12 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+12 
+The following rules apply to information received through this interface.  For all rules that 
+result in a rejection, it is expected that the issue will be resolved in the EVV Vendor 
+system and the information subsequently retransmitted. 
+• There is one set of Interfaces per Sandata Provider Agency ID.   
+• There will be 3 independent types of data provided: 
+o Clients 
+o Employees (Field Staff) 
+o Visit Information 
+• Each will be sent individually but can be delivered through the same single 
+connection. 
+• Visit Information can have up to 2 Calls segments per transmission. Visit 
+Information that have more than 2 Calls segments will be rejected.  
+ 
+• Visit transmittals 
+o Visits should be transmitted near real time.  Actual payer frequency 
+requirements may vary.   
+o Note that rejection responses will be delivered as separate API calls initiated by 
+the EVV Vendor.   
+o Information should be sent for only those records that are added, changed, or 
+deleted.  This is considered to be an incremental transmission.   
+o Records which have not changed should not be resent. 
+• Complete transmissions 
+o When sending a client, all applicable elements and sub elements must be sent 
+during each transmission.   
+o When sending an employee, all applicable elements and sub elements must be 
+sent during each transmission.   
+o When sending a visit, all applicable elements and sub elements must be sent 
+during each transmission. 
+• Call matching   
+o Calls received--regardless of the collection method used by the Alternate Data 
+Collection System--are received together into a complete visit by the 
+Aggregator, per the specification.   
+o Sandata will not attempt to match or rematch the visits received. 
+• Data quality  
+o All data will be accepted from EVV Vendors “as is,” including any calculated 
+fields. 
+--- Page 13 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+13 
+• Latitude and Longitude (CallType = Mobile) 
+• Alternate EVV Data Collection Systems are responsible for providing latitude 
+and longitude on all client addresses provided.   
+• Latitude and longitude must be provided for both the visit start and visit end 
+time, assuming it is collected via a GPS-enabled device. 
+• Assigning sequence numbers 
+o For each of the 3 types of records (client, employee, visit), the Alternate Data 
+Collection System will be responsible for assigning sequence numbers for each 
+interface to ensure that updates are applied in the appropriate sequence.  
+o If a record is rejected, an incremented sequence is expected on the next 
+transmission of that record set.   
+o Sequence numbers are per unique record (client, employee, visit) and record set 
+(modifications to the same client, employee, visit).   
+• For example, the first time a particular client is sent, the sequence would 
+be set to 1.  The second time that same client is sent, the sequence would 
+be set to 2, etc. 
+• Having the ability to correct defined exceptions 
+o Exceptions must be corrected using the standard set of reason codes provided 
+by Payer/State.   
+o Some of the defined reason codes require additional text to provide additional 
+information; this information must also be sent as part of this interface. 
+• Change log transmission 
+o Changes made to all visit information must be fully logged, and the log 
+information must be transmitted as part of the visit record, as applicable. This is 
+recorded in the "VisitChanges" segment and refers to all changes on the visit, 
+even if they occurred in the vendor system, before first submitting the visit to 
+Sandata. 
+• Using standard date/time format 
+o All dates and times provided must be sent in UTC (Coordinated Universal Time) 
+format in GMT. 
+• Calls Segment Fields Specific to CallType Logic: 
+o CallType Manual and Other should not include below listed fields. If the below 
+fields are included, they should be sent with null. 
+o CallType Mobile requires: CallLatitude, CallLongitude, MobileLogin 
+o CallType Telephony requires: TelephonyPIN, OriginatingPhoneNumber 
+ 
+--- Page 14 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+14 
+• If a record is received and any required data is missing, malformed, or incomplete 
+as defined in the specification, the record will be rejected or set to default values in 
+accordance with the detailed specifications. 
+• If an optional field is provided with an invalid value (one not listed in this 
+specification), the field will be set to the default value, null and/or rejected, unless 
+otherwise specified in this specification. 
+• If text (string) field length is longer (>/greater than) than the maximum allowed for 
+that field value, unless otherwise noted, the field will be truncated to the maximum 
+length specified for that field. 
+• Any record without a sequence number will be rejected.  Sequence numbers are 
+per unique record (client, employee, visit).  For example, the first time a particular 
+client is sent, the sequence would be set to 1.  The second time the same client is 
+sent, the sequence would be set to 2, etc.   
+• Records will be processed in the order received using the assigned sequence 
+number.  
+• If a record that has been received has a sequential number that is less than the one 
+already processed, it WILL BE PROCESSED, but will be logged as “received” and 
+inserted into history.  It will not be considered to be the current record. 
+• Header information as determined for the payer and program must be included in 
+each transmission for each record (client, employee, visit), otherwise the entire 
+collection of records will be rejected. 
+ 
+• The following represents a subset of the requirements for client information.  
+Please see the program specification for all applicable element expectations. 
+o If the client does not include at least 1 complete address (address line 1, city, 
+state, zip code) the client will be rejected. 
+o If the client does not include the defined unique identifier, the client will be 
+rejected. 
+o If the client does not include a Client Other ID (external ID) and Sequence 
+ID, the client will be rejected. 
+o If the client does not include first name, last name and time zone, the client 
+will be rejected. 
+ 
+--- Page 15 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+15 
+• The following represents a subset of the requirements for employee information.  
+Please see the program specification for all applicable element expectations. 
+o If Staff Other ID (External ID), Sequence ID and Staff ID are not provided, 
+the employee will be rejected. 
+o If employee first name and last name are not provided, the employee will be 
+rejected. 
+ 
+• Clients and Employees should be sent before visits, to ensure they exist in the 
+Sandata system at the time of visit receipt. 
+o No Client Provided - To allow the Aggregator to determine if the visit is for a 
+Payer/State client, the visit must include a client.  If a visit does not include a 
+client, the complete visit will be rejected. 
+o Invalid/Unknown Client Provided - To allow the Aggregator to determine if the 
+visit is for a Payer/State Client, the visit must include a valid client associated 
+with the payer.  If a visit includes a client that is unknown to Sandata (has not 
+been received and accepted), the complete visit record will be rejected.  
+o No Employee Provided / Invalid or Unknown Employee Provided - If a visit does 
+not include an employee (visit record sent without an employee associated), the 
+visit will be accepted and the ‘Unknown Employee’ exception will be calculated 
+and applied. This record is accepted but raises an exception. 
+o Client and Employee transmissions are not expected to be sent with every 
+associated visit record. 
+• The Alternate EVV system is expected to be able to handle a visit that crosses 
+calendar days. 
+ 
+• Visits are expected within 24 hours of occurrence, or the frequency mentioned in 
+the specifications.  
+ 
+• A visit can only be cancelled if it does not have any calls associated with it or any 
+adjusted times.  If a visit has calls but is being cancelled in the source EVV system, 
+the “Bill Visit” indicator should be set to False to indicate that the visit should be 
+disregarded for billing purposes.  The visit status will be set to Omit by the 
+Aggregator. If BillVisit as false would be sent on the visit first instance, this record 
+is not needed. Each visit first instance is expected to have BillVisit as true. If it is 
+later determined the visit is not billable, a visit update must be sent, with BillVisit as 
+false. The visit will be set to Omit status (omit from billing). 
+ 
+--- Page 16 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+16 
+• The following rules apply to the dates and times provided for the visit: 
+ 
+Where Date and Times are provided for the following: 
+Call In Call Out Adjusted 
+In 
+Adjusted 
+Out Rule 
+x x   
+Call Out must be > 
+Call In 
+Otherwise record 
+rejected. 
+Superseded by 
+Adj. In 
+Superseded by Adj. 
+Out x x 
+Adj. Out must be > 
+Adj. In 
+Otherwise record 
+rejected. 
+x Superseded by Adj. 
+Out  x 
+Adj. Out must be > 
+Call In 
+Otherwise record 
+rejected. 
+Superseded by 
+Adj. In x x  
+Call Out must be > 
+Adj. In 
+Otherwise record 
+rejected. 
+ 
+• Call Times vs Adjusted Times Logic:  
+o The Calls segment is to represent how the visit originally captured In/Out 
+times, whether via a device or manually. Therefore, it should not be changed.  
+o Each visit first instance is expected to contain both Calls In and Out, with all 
+appropriate additional fields. 
+o The Adjusted times should only be used to correct/change previous Call times. 
+The Adjusted times represent the actual visit time(s). 
+o When a In and/or Out time is corrected in a visit update, the Calls segment is 
+optional, being that the corrected time(s) should only be in the appropriate 
+Adjusted time field(s). 
+o Adjusted times are treated as manual entries and therefore require the 
+VisitChanges segment. Adjusted times supersede Call times.  
+o The VisitChanges segment is required when the CallType is Manual, Adjusted 
+Time(s) exist and for all visit updates.  
+o When both Call times and Adjusted times are included, both are used to ensure 
+the actual In time is always before the actual Out time. 
+o Calls vs Adjusted scenarios:  
+o #1 – Calls were captured correctly during the visit. This is expected to be the 
+higher percentage of visits. 
+"AdjInDateTime":null, 
+"AdjOutDateTime":null, 
+"CallType": should be however originally captured 
+"CallDateTime":"2023-02-05T09:00:00Z", 
+--- Page 17 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+17 
+"CallAssignment":"Time In", 
+"CallDateTime":"2023-02-05T10:00:00Z", 
+"CallAssignment":"Time Out",  
+o #2 – Calls were captured during the visit, but the caregiver logged in late 
+and logged out early. 
+"AdjInDateTime":”2023-02-05T09:00:00Z", 
+"AdjOutDateTime":”2023-02-05T10:00:00Z", 
+"CallType": should be however originally captured 
+"CallDateTime":"2023-02-05T09:10:00Z", 
+"CallAssignment":"Time In", 
+"CallDateTime":"2023-02-05T09:50:00Z", 
+"CallAssignment":"Time Out",  
+o #3 – Calls were captured before the visit took place. This is inappropriate. 
+Below will result in error ‘Call Out cannot be less than Adjusted In’ or ‘Call 
+Out must be greater than Adjusted In’. If the visit was first sent with only 
+Calls, it cannot be updated with Adjusted times. Rather, the visit must be 
+updated with BillVisit as false. Then send a new visit, with new/unique 
+VisitOtherID, and actual times as Calls In and Out with CallType Manual. 
+"AdjInDateTime":”2023-02-05T09:00:00Z", 
+"AdjOutDateTime":”2023-02-05T10:00:00Z", 
+"CallType": should be however originally captured 
+"CallDateTime":"2023-02-05T08:30:00Z", 
+"CallAssignment":"Time In", 
+"CallDateTime":"2023-02-05T08:45:00Z", 
+"CallAssignment":"Time Out",  
+o #4 – Calls were captured after the visit took place. This is inappropriate. 
+Below will result in error ‘Call In cannot be greater than Adjusted Out’ or 
+‘Adjusted Out must be greater than Call In’. If the visit was first sent with 
+only Calls, it cannot be updated with Adjusted times. Rather, the visit 
+must be updated with BillVisit as false. Then send a new visit, with 
+new/unique VisitOtherID, and Calls In and Out with CallType Manual. 
+"AdjInDateTime":”2023-02-05T09:00:00Z", 
+"AdjOutDateTime":”2023-02-05T10:00:00Z", 
+"CallType": should be however originally captured 
+"CallDateTime":"2023-02-05T10:30:00Z", 
+"CallAssignment":"Time In", 
+"CallDateTime":"2023-02-05T10:45:00Z", 
+"CallAssignment":"Time Out",  
+ 
+• Upon receipt, Sandata will calculate all configured Payer/Program exceptions and 
+apply those exceptions as applicable.  For those exceptions that may be 
+recalculated over the life of the visit, these exceptions will be calculated as 
+appropriate. 
+• It is assumed that there are some exceptions that cannot be “fixed” in the Alternate 
+Data Collection System by their nature.  They are configured for the Payer/State 
+program as requiring acknowledgement by the system user.  One of the included 
+visit elements provides the ability for the user to send their acknowledgement.  
+--- Page 18 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+18 
+These exceptions require attestation that the exception has been 
+reviewed/acknowledged in the system along with the appropriate reason code and 
+attestation that appropriate documentation exists.  Exceptions are specific to a 
+given Payer/Program and will be noted in the specification. 
+• Upon receipt, Sandata will calculate and apply visit status as defined for the 
+Payer/Program. 
+• The Alternate Data Collection System will be expected to send a reason code and 
+optionally the defined resolution code if it applies to the payer.  Based on the 
+definitions of the reason codes, some reason codes require additional information 
+explaining the change. If additional information is required, the alternate data 
+collection system must collect the information and include it when transmitting the 
+visit to Sandata.  
+ 
+The SequenceID on all three types of records (clients, employees, visits) should be 
+independent per record and should be incremented each time any record is sent.  The 
+Sequence ID will be used to ensure that a record is processed only once and that the most 
+current information is used for reporting and claims processing.  In the event a visit 
+update is not accepted (rejected), the SequenceID on that transmission should not be 
+reused. The next update should increment to the next number in the sequence. Failure to 
+do so will cause the new record to be rejected as a duplicate. 
+ 
+• If the latest SequenceID is greater than the highest value previously received, the 
+record set will not be rejected. i.e. latest SequenceID = 5, previous SequenceID = 4 
+➔ Record accepted and latest record is displayed.   
+• If the latest SequenceID is less than the value previously received, and the record 
+has not yet been processed, it will be accepted and recorded as historical 
+information. i.e. latest SequenceID = 8, previous SequenceID = 10 ➔ Record 
+accepted and latest record is still SequenceID = 10. 
+• If the Sequence ID is equal to a value previously received, it will be rejected. i.e. 
+latest SequenceID = 15, previous SequenceID = 15 ➔ Record rejected. 
+• Gaps in sequence will be allowed. 
+ 
+--- Page 19 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+19 
+ 
+ 
+ 
+Column Name Description Max 
+Length Type 
+AgencyIdentifier  Unique identifier for the 
+agency. 10 String 
+ProviderID  Unique identifier for the 
+agency. 64 String 
+TransactionID 
+Unique identifier for the 
+request generated by the 
+payer. 
+50 String 
+Reason 
+Default and only value 
+provided: 
+“Transaction Received” 
+250 String 
+ 
+Column Name Description Max 
+Length Type 
+AgencyIdentifier  Unique identifier for the 
+agency. 10 String 
+ProviderID  Unique identifier for the 
+agency. 64 String 
+RecordType Type of record that was 
+rejected  10 String 
+Please Note: 
+For those agencies that wish to use the Alternate EVV interface, and would prefer to use 
+timestamps as the sequence number in their deliveries, the Sandata system can accept the 
+timestamp value as the sequence number, under two conditions: 
+1. The timestamp value provided must contain only numbers, and no other symbols (i.e. 
+“/”, “-“, and “:” characters removed) 
+2. The timestamp value provided must be formatted as YYYYMMDDHHMMSS.  For 
+example: 
+ 
+
+--- Page 20 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+20 
+Values: Client, Employee, 
+Visit 
+RecordOtherID Value of the record 
+identifier 50 String 
+Reason 
+Default and only value 
+provided: 
+“Transaction Received” 
+250 String 
+ 
+  
+--- Page 21 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+21 
+ 
+ 
+The RESTful APIs can be reached at the following locations: 
+• EVV Vendor: 
+o The endpoints accept JSON data and support the HTTP POST method. 
+o Production: 
+• https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1 
+• https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1 
+• https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1 
+o UAT: 
+• https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1 
+• https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1 
+• https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1 
+o In addition, WADL documents describing the APIs can be found at the following 
+locations: 
+• Production: 
+o https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/wadl 
+o https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/wa
+dl 
+o https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1/wadl 
+• UAT: 
+o https://uat-
+api.sandata.com/interfaces/intake/clients/rest/api/v1.1/wadl 
+o https://uat-
+api.sandata.com/interfaces/intake/employees/rest/api/v1.1/wadl 
+o https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1/wadl 
+ 
+The endpoints accept JSON data and support the HTTP POST method. 
+ 
+A Sandata implementation manager will denote which API is appropriate to use given the 
+requirements of the program. 
+ 
+ 
+The API endpoints utilize Basic Authentication.  Therefore, a valid “Authorization” header 
+must be sent with each request.  This header is simply a Base 64 encoded representation 
+of the username and password in the format “username:password”.   
+ 
+--- Page 22 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+22 
+The credentials are determined and distributed during implementation.   
+ 
+An example header for “user@example.com” with password “secret” would be:  
+ 
+Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ= 
+ 
+ 
+In addition to the data endpoint header, a header denoting the callers EVV “Account” 
+must be sent.  The credentials provided are specific to an account, and all data sent must 
+also correspond to that account, or the request will be rejected.   
+ 
+An example of this header would be: 
+ 
+Account: 12345 
+ 
+Alternatively, for MCO customers and other vendors sending data on behalf of multiple 
+EVV accounts, the “EntityGuid” header is used.  This ID will be provided by Sandata during 
+implementation.   
+ 
+An example of this header would be: 
+ 
+EntityGuid: 12345 
+ 
+ 
+As with all RESTful API requests, the “Content-Type” header should also be included: 
+ 
+Content-Type: application/json  
+ 
+ 
+Interacting with the RESTful API is a two-step process:   
+ 
+• Step 1 – Send a POST request with the data to the API 
+• Step 2 – Utilize the GET “Status” API to check that processing completed 
+successfully 
+ 
+--- Page 23 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+23 
+If the call for Status check results in a messageSummary of “The result for the input UUID 
+is not ready yet. Please try again.”, then the sender process must “sleep” and recheck 
+Status until the Status API call returns a messageSummary of either “All records updated 
+successfully.” Or …”Records uploaded, please check errors/warnings and try again.” 
+ 
+Details are as follows: 
+ 
+The first step is to POST the data being sent to the URL mentioned above in the “API 
+Location” section.  When data is sent, the Sandata system will validate the input meets the 
+business requirements, process the data, and return a response.   
+ 
+The response sends back some key pieces of information.  This includes any errors that 
+may have been flagged, as well as a UUID, generated by Sandata, which uniquely identifies 
+the request.  See example responses below in the “Sample Responses” section. 
+ 
+After this response is sent, the Sandata system begins processing the data into the system.  
+Since the initial POST has already received a response, callers must use a second endpoint 
+to check on the status of their request.   
+ 
+To this end, the API is accompanied by an additional endpoint for checking status.  This 
+endpoint is reached simply by appending “/status” to the URL in the “API Location” section 
+above.  Calls to this endpoint must utilize the HTTP GET method and send in the UUID 
+that is returned in the response to the POST call.   
+ 
+An example GET request for status would be sent as follows: 
+ 
+https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid=8d7c
+31f7-4a09-41a9-8edd-f9819def58f1 
+ 
+In summary, the caller would POST data to the API, receive a response with a UUID, then 
+utilize the “status” endpoint via GET in order to determine if processing was completed 
+and successful. 
+ 
+An example EVV Vendor workflow when sending employees, clients, and visits would be: 
+  
+1. Send POST request with employee data; receive UUID. 
+2. Utilize UUID to query employee “Status” API; if still processing, sleep and recheck. 
+3. Once “Status” API for employees indicates processing is finished, send POST 
+request with client data; receive UUID. 
+4. Utilize UUID to query client “Status” API; if still processing, sleep and recheck. 
+5. Once “Status” API for client indicates processing is finished, send POST request 
+with visit data; receive UUID. 
+6. Utilize UUID to query visit “Status” API; if still processing, sleep and recheck. 
+7. Once “Status” API for visits indicates processing is finished, all data has been 
+transmitted. 
+--- Page 24 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+24 
+ 
+Section Field Name Description 
+Client General ClientFirstName 
+Only the following special characters will be 
+accepted: 
+• Alpha Letters 
+• Hyphens 
+• Periods 
+• Apostrophe 
+All other special characters will be rejected. 
+Client General ClientLastName 
+Only the following special characters will be 
+accepted: 
+• Alpha Letters 
+• Hyphens 
+• Periods 
+• Apostrophe 
+All other special characters will be rejected. 
+Client General ClientQualifier The value is the actual string value 
+“ClientQualifier” and is required to be mixed case 
+Client Address ClientAddressLine1 
+Only the following special character will be 
+accepted:  
+• Alpha Letters  
+• Hyphens (-)  
+• Periods (.)  
+• Hash (#)  
+• Apostrophe (‘)  
+• Underscore (_)  
+• Space  
+All other special characters will be rejected.  
+ 
+--- Page 25 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+25 
+Section Field Name Description 
+Client Address ClientAddressLine2 
+Only the following special character will be 
+accepted:  
+• Alpha Letters  
+• Hyphens (-)  
+• Periods (.)  
+• Hash (#)  
+• Apostrophe (‘)  
+• Underscore (_)  
+• Space  
+All other special characters will be rejected.  
+Client Address ClientCounty 
+Only the following special character will be 
+accepted:  
+• Alpha Letters  
+• Hyphens (-)  
+• Periods (.)  
+• Apostrophe (‘)  
+• Underscore (_)  
+• Space  
+All other special characters will be rejected.  
+Client Address ClientCity 
+Only the following special character will be 
+accepted:  
+• Alpha Letters  
+• Hyphens (-)  
+• Periods (.)  
+• Underscore (_)  
+• Space  
+All other special characters will be rejected.  
+Employee General EmployeeLastName 
+Only the following special characters will be 
+accepted: 
+• Alpha Letters 
+• Hyphens 
+• Periods 
+• Apostrophe 
+All other special characters will be rejected. 
+--- Page 26 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+26 
+Employee General EmployeeFirstName 
+Only the following special characters will be 
+accepted: 
+• Alpha Letters 
+• Hyphens 
+• Periods 
+• Apostrophe 
+All other special characters will be rejected. 
+Employee General EmployeeQualifier 
+The value is the actual string value 
+“EmployeeQualifier” and is required to be mixed 
+case 
+ 
+ 
+ 
+Field Name Other Possible Naming 
+Client 
+Individual 
+Member 
+Patient 
+Recipient 
+Employee 
+Caregiver 
+Consumer Directed Worker 
+Home Health Aide 
+Staff 
+Worker 
+Provider 
+Agency 
+Third Party Admin (TPA) 
+Payer 
+Admission 
+Contract 
+Insurance Company 
+Managed Care Organization (MCO) 
+State 
+Contract Program 
+--- Page 27 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+27 
+Program Code 
+HCPCS 
+Bill Code 
+Procedure Code 
+Service 
+ 
+ 
+ 
+Term Definition 
+AKA Also Known As 
+API Application Programming Interface 
+GMT Greenwich Mean Time 
+HTTP Hypertext Transfer Protocol 
+JSON JavaScript Object Notation 
+SOAP Simple Object Access Protocol 
+SRS System Requirement Specifications 
+TBD To Be Determined  
+UTC Universal Time Coordinated 
+XML Extensible Markup Language 
+ 
+ 
+Below find sample POST bodies for each entity, as well as sample responses in both 
+successful and unsuccessful situations.  Note that, based on implementation, not all fields 
+are required to be present.  In addition, certain implementations may include custom 
+fields that are not represented in the samples.  Please refer to the specification for a full 
+set of fields and their details. 
+ 
+JSON Employee 
+ 
+[{ 
+ "ProviderIdentification": { 
+  "ProviderQualifier": "MedicaidID", 
+  "ProviderID": "123456" 
+ }, 
+ "EmployeeQualifier": "EmployeeCustomID", 
+ "EmployeeIdentifier": "999999999", 
+ "EmployeeOtherID": "999999999", 
+--- Page 28 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+28 
+ "SequenceID": 99811930002, 
+ "EmployeeLastName": "Employee", 
+ "EmployeeFirstName": "Test", 
+ "EmployeeEmail": "dummy@sandata.com", 
+}] 
+ 
+JSON Client 
+ 
+[{ 
+ "ProviderIdentification": { 
+  "ProviderQualifier": "MedicaidID", 
+  "ProviderID": "123456" 
+ }, 
+ "ClientID": "96641", 
+ "ClientFirstName": "Test", 
+ "ClientMiddleInitial": "T", 
+ "ClientLastName": "Client", 
+ "ClientQualifier": "ClientMedicaidID", 
+ "ClientMedicaidID": "999999999", 
+ "ClientIdentifier": "999999999", 
+ "MissingMedicaidID": "False", 
+ "SequenceID": 99811930002, 
+ "ClientCustomID": "111111111", 
+ "ClientOtherID": "2222", 
+ "ClientTimezone": "US/Eastern", 
+ "Coordinator": "123", 
+ "ProviderAssentContPlan": false, 
+ "ClientPayerInformation": [{ 
+  "PayerID": "57", 
+  "PayerProgram": "123", 
+  "ProcedureCode": "123", 
+  "ClientPayerID": "987654321", 
+  "ClientEligibilityDateBegin": "2019-01-01", 
+  "ClientEligibilityDateEnd": "2020-01-01", 
+  "ClientStatus": "02", 
+  "EffectiveStartDate": "2019-01-01", 
+  "EffectiveEndDate": "2020-01-01" 
+ },{ 
+  "PayerID": "65", 
+  "PayerProgram": "345", 
+  "ProcedureCode": "678", 
+  "ClientPayerID": "987654321", 
+  "ClientEligibilityDateBegin": "2019-02-02", 
+  "ClientEligibilityDateEnd": "2024-01-01", 
+  "ClientStatus": "02", 
+  "EffectiveStartDate": "2019-02-02", 
+  "EffectiveEndDate": "2024-01-01" 
+ }], 
+ "ClientAddress": [{ 
+  "ClientAddressType": "Home", 
+  "ClientAddressIsPrimary": true, 
+  "ClientAddressLine1": "36 West 5th Street", 
+  "ClientAddressLine2": "10th Floor", 
+  "ClientCounty": "Kings", 
+  "ClientCity": "Manhattan", 
+  "ClientState": "NY", 
+  "ClientZip": "10017", 
+  "ClientAddressLongitude": -73.4228741, 
+  "ClientAddressLatitude": 40.7431032 
+ }], 
+--- Page 29 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+29 
+ "ClientPhone": [{ 
+  "ClientPhoneType": "Home", 
+  "ClientPhone": "1234567890" 
+ }], 
+ "ClientDesignee": [{ 
+        "ClientDesigneeFirstName": "", 
+        "ClientDesigneeLastName": "", 
+        "ClientDesigneeEmail": "", 
+        "ClientDesigneeStatus": "", 
+        "ClientDesigneeStartDate": "", 
+        "ClientDesigneeEndDate": "", 
+        "ClientDesigneeRelationship": "" 
+       }], 
+ "ClientResponsibleParty": [{ 
+  "ClientContactType": "Other", 
+  "ClientContactFirstName": "Test", 
+  "ClientContactLastName": "Respparty", 
+  "ClientContactPhoneType": "Mobile", 
+  "ClientContactPhone": "3478788467", 
+  "ClientContactEmailAddress": "dummy@sandata.com", 
+  "ClientContactAddressLine1": "2727 East 29th Street", 
+  "ClientContactAddressLine2": "Apt 8I", 
+  "ClientContactCity": "Brooklyn", 
+  "ClientContactState": "NY", 
+  "ClientContactZip": "11229" 
+ }] 
+}] 
+ 
+JSON Visit 
+ 
+[{ 
+ "ProviderIdentification": { 
+  "ProviderID": "123456", 
+  "ProviderQualifier": "MedicaidID" 
+ }, 
+ "VisitOtherID": "123456789", 
+ "SequenceID": 111, 
+ "EmployeeQualifier": "EmployeeCustomID", 
+ "EmployeeOtherID": "999999999", 
+ "EmployeeIdentifier": "999999999", 
+ "GroupCode": null, 
+ "ClientIDQualifier": "ClientMedicaidID", 
+ "ClientID": "111111111", 
+ "ClientOtherID": "111111111", 
+ "VisitCancelledIndicator": false, 
+ "PayerID": "999", 
+ "PayerProgram": "PRG", 
+ "ProcedureCode": "T1000", 
+ "Modifier1": null, 
+ "Modifier2": null, 
+ "Modifier3": null, 
+ "Modifier4": null, 
+ "VisitTimeZone": "US/Eastern", 
+ "ScheduleStartTime": "2019-07-28T16:02:26Z", 
+ "ScheduleEndTime": "2019-07-28T20:02:26Z", 
+     "ContingencyPlan": "CP01", 
+ "Reschedule": false, 
+ "AdjInDateTime": "2019-07-28T15:02:26Z", 
+ "AdjOutDateTime": "2019-07-28T19:02:26Z", 
+ "BillVisit": true, 
+--- Page 30 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+30 
+ "HoursToBill": 10, 
+ "HoursToPay": 10, 
+ "Memo": "This is a memo!", 
+ "ClientVerifiedTimes": true, 
+ "ClientVerifiedTasks": true, 
+ "ClientVerifiedService": true, 
+ "ClientSignatureAvailable": true, 
+ "ClientVoiceRecording": true, 
+ "Calls": [{ 
+  "CallExternalID": "123456789", 
+  "CallDateTime": "2019-07-28T16:02:26Z", 
+  "CallAssignment": "Time In", 
+  "GroupCode": null, 
+  "CallType": "Other", 
+  "ProcedureCode": "T1000", 
+  "ClientIdentifierOnCall": "111111111", 
+  "MobileLogin": null, 
+  "CallLatitude": 40.34455, 
+  "CallLongitude": -21.99383, 
+  "Location": "123", 
+  "TelephonyPIN": 999999999, 
+  "OriginatingPhoneNumber": "9997779999" 
+ },{ 
+  "CallExternalID": "123456789", 
+  "CallDateTime": "2019-07-28T17:02:32Z", 
+  "CallAssignment": "Time Out", 
+  "GroupCode": null, 
+  "CallType": "Other", 
+  "ProcedureCode": "T1000", 
+  "ClientIdentifierOnCall": "111111111", 
+  "MobileLogin": null, 
+  "CallLatitude": 40.34455, 
+  "CallLongitude": -21.99383, 
+  "Location": "123", 
+  "TelephonyPIN": 999999999, 
+  "OriginatingPhoneNumber": "9997779999" 
+ }], 
+ "VisitExceptionAcknowledgement": [{ 
+  "ExceptionID": "15", 
+  "ExceptionAcknowledged": false 
+ }], 
+ "VisitChanges": [{ 
+  "SequenceID": "110", 
+  "ChangeMadeBy": "dummy@sandata.com", 
+  "ChangeDateTime": "2019-07-25T18:45:00Z", 
+  "GroupCode": null, 
+  "ReasonCode": "7227", 
+  "ChangeReasonMemo": "Change Reason Memo 999", 
+  "ResolutionCode": "A" 
+ }], 
+ "Tasks": [{ 
+  "TaskID": "321", 
+  "TaskReading": "98.6", 
+  "TaskRefused": false 
+ }] 
+}] 
+ 
+  
+--- Page 31 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+31 
+ 
+See some sample responses below.  Note that the samples are provided for 
+employee, but the same pattern is followed for both client and visit.   
+ 
+Employee POST (Successful) 
+ 
+ { 
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5", 
+  "status": "SUCCESS", 
+  "messageSummary": "The result for the input UUID is not ready yet. Please try 
+again.", 
+  "data": { 
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5", 
+    "account": "12345", 
+    "message": "The result for the input UUID is not ready yet. Please try again.", 
+    "reason": "Transaction Received." 
+  } 
+} 
+ 
+Employee POST (Validation Error) 
+ 
+{ 
+  "id": "ea76e9a1-9b29-4f3d-af1c-6b573eb29b76", 
+  "status": "FAILED", 
+  "messageSummary": "[1] Records uploaded, please check errors/warnings and try 
+again.",   
+  "data": [ 
+    { 
+      "ProviderIdentification": { 
+        "ProviderID": "123456", 
+        "ProviderQualifier": "MedicaidID", 
+        "ErrorCode": null, 
+        "ErrorMessage": null 
+      }, 
+      "EmployeeIdentifier": "999999999", 
+      "EmployeeOtherID": "2222", 
+      "SequenceID": 99811930002, 
+      "EmployeeQualifier": "EmployeeCustomID", 
+      "EmployeeOtherID": "999999999", 
+      "EmployeeLastName": "Employee", 
+      "EmployeeFirstName": "Test", 
+      "EmployeeEmail": "dummy@sandata.com", 
+      "EmployeeManagerEmail": "dummymanager@sandata.com", 
+      "EmployeeAPI": "111111111", 
+      "EmployeePosition": "AKN", 
+      "ErrorCode": null, 
+      "ErrorMessage": "ERROR: The EmployeePosition expected format is not correct. The 
+record should satisfy this regular expression ['HHA|HCA|RN|LPN|PCA']. Invalid 
+Value='AKN'. The record is being rejected." 
+    } 
+  ] 
+} 
+ 
+--- Page 32 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+32 
+Employee GET (Status) 
+ 
+A sample response to a status GET request that has finished processing is: 
+ 
+{ 
+ "id": "73b7a9d7-a79a-45cc-9def-cb789c111f4b", 
+ "status": "SUCCESS", 
+ "messageSummary": "All records updated successfully.", 
+ "data": { 
+  "uuid": "73b7a9d7-a79a-45cc-9def-cb789c111f4b", 
+  "account": null, 
+  "message": "All records updated successfully.", 
+  "reason": "Transaction Received." 
+ } 
+} 
+ 
+If the request is not yet finished being processed, the “messageSummary” will be 
+“The result for the input UUID is not ready yet. Please try again.” Sandata advises a 
+5 minute wait between POST and GET and between each GET reattempt. The 
+UUID is available for 48 hours to obtain the final GET status. 
+ 
+{ 
+ "id": "873a1d97-0681-402e-8268-b6cad8f2b4b7", 
+ "status": "SUCCESS", 
+ "messageSummary": "The result for the input UUID is not ready yet. Please try 
+again.", 
+ "data": { 
+  "uuid": "873a1d97-0681-402e-8268-b6cad8f2b4b7", 
+  "account": "12345", 
+  "message": "The result for the input UUID is not ready yet. Please try 
+again.", 
+  "reason": "Transaction Received." 
+ } 
+} 
+ 
+If the request was processed but failed business rules, an example status would be: 
+ 
+{ 
+  "id": "e5de964b-9803-4051-b89b-8a89926e4983", 
+  "status": "SUCCESS", 
+  "messageSummary": "[2] Records uploaded, please check errors/warnings and try 
+again.",   
+  "data": [ 
+    { 
+      "ProviderIdentification": { 
+        "ProviderID": "123456", 
+        "ProviderQualifier": "SandataID", 
+        "ErrorCode": null, 
+        "ErrorMessage": null 
+      }, 
+      "EmployeeIdentifier": "999999999", 
+      "EmployeeOtherID": "2222", 
+      "SequenceID": 99811930002, 
+      "EmployeeQualifier": "EmployeeCustomID", 
+      "EmployeeOtherID": "999999999", 
+      "EmployeeLastName": "Employee", 
+--- Page 33 ---
+ 
+Specification User Guide – EVV Vendor REST API v1.3 | 
+ 
+33 
+      "EmployeeFirstName": "Test", 
+      "EmployeeEmail": "dummy@sandata.com", 
+      "EmployeeManagerEmail": "dummymanager@sandata.com", 
+      "EmployeeAPI": "111111111", 
+      "EmployeePosition": "RN", 
+      "ErrorCode": "-709", 
+      "ErrorMessage": "Version number is duplicated or older than current" 
+    } 
+  ] 
+} 
+ 

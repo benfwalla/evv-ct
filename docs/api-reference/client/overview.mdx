@@ -1,0 +1,243 @@
+---
+title: 'Client Endpoint Overview'
+description: 'Manage client (member/beneficiary) information in the EVV system'
+---
+
+## What is a Client?
+
+A **Client** (also known as member, beneficiary, patient, or recipient) is an individual who receives home health or personal care services. Client records must be created in the EVV system before visits can be submitted.
+
+## Client Endpoint Purpose
+
+The Client endpoint allows you to:
+- Create new client records
+- Update existing client information
+- Manage client addresses and contact information
+- Associate clients with payers and programs
+- Track client status (Active/Inactive)
+
+## Endpoint URL
+
+<CodeGroup>
+
+```bash Production
+POST https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1
+GET  https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status
+```
+
+```bash UAT
+POST https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1
+GET  https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status
+```
+
+</CodeGroup>
+
+## Key Concepts
+
+### Client Identifiers
+
+Clients are identified by multiple IDs that must align:
+
+<CardGroup cols={2}>
+  <Card title="ClientMedicaidID" icon="id-card">
+    9-digit Medicaid ID assigned by the state
+  </Card>
+  <Card title="ClientIdentifier" icon="fingerprint">
+    Must match ClientMedicaidID
+  </Card>
+  <Card title="ClientCustomID" icon="key">
+    Must match ClientMedicaidID
+  </Card>
+  <Card title="ClientOtherID" icon="tag">
+    Your system's internal client ID (optional)
+  </Card>
+</CardGroup>
+
+### Required Information
+
+Every client must have:
+- ✅ Valid 9-digit Medicaid ID
+- ✅ First and last name
+- ✅ At least one complete address
+- ✅ Time zone (US/Eastern for Connecticut)
+- ✅ Sequence ID for versioning
+
+### Optional Information
+
+You can also provide:
+- Middle initial
+- SSN (last 5 digits)
+- Multiple addresses
+- Phone numbers
+- Payer/program associations
+- Client status
+
+## Data Structure
+
+```json
+{
+  "ProviderIdentification": {
+    "ProviderQualifier": "MedicaidID",
+    "ProviderID": "123456789"
+  },
+  "ClientQualifier": "ClientCustomID",
+  "ClientIdentifier": "987654321",
+  "ClientFirstName": "Jane",
+  "ClientLastName": "Doe",
+  "ClientMedicaidID": "987654321",
+  "SequenceID": 1,
+  "ClientTimeZone": "US/Eastern",
+  "ClientCustomID": "987654321",
+  "ClientAddress": [{
+    "ClientAddressType": "Home",
+    "ClientAddressIsPrimary": "true",
+    "ClientAddressLine1": "123 Main Street",
+    "ClientCity": "Hartford",
+    "ClientState": "CT",
+    "ClientZip": "061011234"
+  }]
+}
+```
+
+## Workflow
+
+<Steps>
+  <Step title="Prepare Client Data">
+    Gather all required client information including Medicaid ID, name, and address
+  </Step>
+  
+  <Step title="Submit Client">
+    POST client data to the endpoint with SequenceID = 1
+  </Step>
+  
+  <Step title="Receive UUID">
+    API returns a UUID for tracking the submission
+  </Step>
+  
+  <Step title="Check Status">
+    Wait 5 minutes, then GET status using the UUID
+  </Step>
+  
+  <Step title="Handle Results">
+    If successful, client is ready for visit submission. If rejected, fix errors and resubmit with incremented SequenceID
+  </Step>
+</Steps>
+
+## Common Use Cases
+
+<AccordionGroup>
+  <Accordion title="New Client Enrollment">
+    When a new client enrolls in services:
+    1. Create client record with SequenceID = 1
+    2. Include all demographic information
+    3. Add payer/program associations
+    4. Verify successful creation before scheduling visits
+  </Accordion>
+  
+  <Accordion title="Address Change">
+    When a client moves:
+    1. Retrieve current client data
+    2. Update address information
+    3. Increment SequenceID
+    4. Submit complete client record with new address
+  </Accordion>
+  
+  <Accordion title="Status Change">
+    When a client becomes inactive:
+    1. Update ClientStatus in ClientPayerInformation
+    2. Set to "04" (Inactive)
+    3. Increment SequenceID
+    4. Submit complete client record
+  </Accordion>
+  
+  <Accordion title="Multiple Payers">
+    When a client has multiple payers:
+    1. Include multiple ClientPayerInformation objects
+    2. Each with different PayerID and PayerProgram
+    3. Specify effective dates for each payer
+  </Accordion>
+</AccordionGroup>
+
+## Validation Rules
+
+<Warning>
+  **Critical Validation Requirements**
+</Warning>
+
+### Name Validation
+- First and last names are required
+- Only letters, hyphens, periods, and apostrophes allowed
+- Max 30 characters each
+
+### Address Validation
+- At least one complete address required
+- Must include: Line1, City, State, Zip
+- Exactly one address must be marked as primary
+- ZIP must be 9 digits (5-digit + 4-digit extension)
+
+### Medicaid ID Validation
+- Must be exactly 9 digits
+- ClientIdentifier, ClientCustomID, and ClientMedicaidID must all match
+- Format: ######### (no dashes or spaces)
+
+### Sequence Validation
+- First submission: SequenceID = 1
+- Updates: Increment SequenceID
+- Duplicate SequenceID will be rejected
+
+## Error Handling
+
+Common rejection reasons:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Missing Medicaid ID | ClientMedicaidID not provided | Add 9-digit Medicaid ID |
+| Invalid Name | Special characters in name | Remove invalid characters |
+| Missing Address | No complete address | Add address with all required fields |
+| Duplicate Sequence | SequenceID already used | Increment SequenceID |
+| ID Mismatch | ClientIdentifier ≠ ClientCustomID | Ensure all IDs match |
+
+## Performance Considerations
+
+<Info>
+  **Best Practices for Client Submissions**
+</Info>
+
+- **Batch Size**: Submit 1-5,000 clients per transaction
+- **Frequency**: Submit new/updated clients daily or in near real-time
+- **Dependencies**: Create clients before submitting visits
+- **Processing Time**: Typically 30 seconds to 5 minutes
+- **Status Check**: Wait 5 minutes before checking status
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Create Client"
+    icon="plus"
+    href="/api-reference/client/create"
+  >
+    Complete field documentation and examples
+  </Card>
+  <Card
+    title="Check Status"
+    icon="magnifying-glass"
+    href="/api-reference/client/status"
+  >
+    Query submission status
+  </Card>
+  <Card
+    title="Business Rules"
+    icon="book"
+    href="/business-rules/client-rules"
+  >
+    Detailed validation rules
+  </Card>
+  <Card
+    title="Create Employee"
+    icon="user"
+    href="/api-reference/employee/create"
+  >
+    Next step: Add employees
+  </Card>
+</CardGroup>

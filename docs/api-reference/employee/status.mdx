@@ -1,0 +1,285 @@
+---
+title: 'Check Employee Status'
+api: 'GET https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status'
+description: 'Query the processing status of an employee submission'
+---
+
+## Overview
+
+After submitting employee data via POST, use this endpoint to check if the submission has been processed successfully or if there were any errors.
+
+<Info>
+  **Wait Time**: Wait at least 5 minutes after POST before checking status. The UUID is available for 48 hours.
+</Info>
+
+## Endpoint
+
+<CodeGroup>
+
+```bash Production
+GET https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status?uuid={uuid}
+```
+
+```bash UAT
+GET https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status?uuid={uuid}
+```
+
+</CodeGroup>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header
+  
+  Format: `Basic <base64(username:password)>`
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID (or use `EntityGuid` for multi-account)
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="uuid" type="string" required>
+  The UUID returned from the POST request
+  
+  **Example**: `7f6dcd1a-ec5e-4efd-a2d4-1049756016a5`
+</ParamField>
+
+## Response States
+
+### Processing (Not Ready)
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "The result for the input UUID is not ready yet. Please try again.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "The result for the input UUID is not ready yet. Please try again.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+**Action**: Wait 5 minutes and check again.
+
+### Success (All Records Processed)
+
+```json
+{
+  "id": "73b7a9d7-a79a-45cc-9def-cb789c111f4b",
+  "status": "SUCCESS",
+  "messageSummary": "All records updated successfully.",
+  "data": {
+    "uuid": "73b7a9d7-a79a-45cc-9def-cb789c111f4b",
+    "account": "12345",
+    "message": "All records updated successfully.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+**Action**: Employees are ready. Proceed with client or visit submissions.
+
+### Failure (Validation Errors)
+
+```json
+{
+  "id": "e5de964b-9803-4051-b89b-8a89926e4983",
+  "status": "SUCCESS",
+  "messageSummary": "[2] Records uploaded, please check errors/warnings and try again.",
+  "data": [
+    {
+      "ProviderIdentification": {
+        "ProviderID": "123456789",
+        "ProviderQualifier": "MedicaidID",
+        "ErrorCode": null,
+        "ErrorMessage": null
+      },
+      "EmployeeIdentifier": "000012345",
+      "EmployeeOtherID": "EMP001",
+      "SequenceID": 1,
+      "EmployeeQualifier": "EmployeeSSN",
+      "EmployeeLastName": "Smith",
+      "EmployeeFirstName": "John",
+      "EmployeeEmail": "invalid-email",
+      "ErrorCode": "-101",
+      "ErrorMessage": "ERROR: EmployeeEmail format is invalid. Must contain @ and valid extension."
+    },
+    {
+      "ProviderIdentification": {
+        "ProviderID": "123456789",
+        "ProviderQualifier": "MedicaidID",
+        "ErrorCode": null,
+        "ErrorMessage": null
+      },
+      "EmployeeIdentifier": "000067890",
+      "EmployeeOtherID": "EMP002",
+      "SequenceID": 1,
+      "EmployeeQualifier": "EmployeeSSN",
+      "EmployeeLastName": "Johnson",
+      "EmployeeFirstName": "Mary",
+      "ErrorCode": "-709",
+      "ErrorMessage": "Version number is duplicated or older than current"
+    }
+  ]
+}
+```
+
+**Action**: Fix errors and resubmit with incremented SequenceID.
+
+## Example Requests
+
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status?uuid=7f6dcd1a-ec5e-4efd-a2d4-1049756016a5" \
+  -H "Authorization: Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=" \
+  -H "Account: 12345"
+```
+
+```javascript JavaScript
+const uuid = '7f6dcd1a-ec5e-4efd-a2d4-1049756016a5';
+
+const checkStatus = async () => {
+  const response = await fetch(
+    `https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status?uuid=${uuid}`,
+    {
+      headers: {
+        'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+        'Account': '12345'
+      }
+    }
+  );
+  
+  const result = await response.json();
+  
+  if (result.messageSummary === "All records updated successfully.") {
+    console.log('✅ All employees processed successfully');
+    return true;
+  } else if (result.messageSummary.includes("not ready yet")) {
+    console.log('⏳ Still processing, check again in 5 minutes');
+    return false;
+  } else {
+    console.log('❌ Errors found:', result.data);
+    return false;
+  }
+};
+
+// Wait 5 minutes before first check
+setTimeout(checkStatus, 5 * 60 * 1000);
+```
+
+```python Python
+import requests
+import time
+
+def check_employee_status(uuid):
+    response = requests.get(
+        'https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status',
+        params={'uuid': uuid},
+        headers={
+            'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+            'Account': '12345'
+        }
+    )
+    
+    result = response.json()
+    
+    if result['messageSummary'] == "All records updated successfully.":
+        print('✅ All employees processed successfully')
+        return True
+    elif "not ready yet" in result['messageSummary']:
+        print('⏳ Still processing, check again in 5 minutes')
+        return False
+    else:
+        print('❌ Errors found:', result['data'])
+        return False
+
+# Wait 5 minutes before first check
+uuid = '7f6dcd1a-ec5e-4efd-a2d4-1049756016a5'
+time.sleep(300)
+check_employee_status(uuid)
+```
+
+</CodeGroup>
+
+## Common Error Codes
+
+| Error Code | Meaning | Solution |
+|------------|---------|----------|
+| `-100` | Missing required field | Add the required field (SSN, name, etc.) |
+| `-101` | Invalid field format | Fix format (email, SSN, etc.) |
+| `-103` | Invalid characters | Remove special characters from name |
+| `-709` | Duplicate SequenceID | Increment SequenceID and resubmit |
+| `-710` | Employee not found | Verify EmployeeIdentifier |
+
+## Polling Strategy
+
+```javascript
+async function pollEmployeeStatus(uuid, maxAttempts = 10) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    console.log(`Checking employee status (${attempt}/${maxAttempts})...`);
+    
+    const response = await fetch(
+      `https://api.sandata.com/interfaces/intake/employees/rest/api/v1.1/status?uuid=${uuid}`,
+      {
+        headers: {
+          'Authorization': 'Basic dXNlckBleGFtcGxlLmNvbTpzZWNyZXQ=',
+          'Account': '12345'
+        }
+      }
+    );
+    
+    const result = await response.json();
+    
+    // Check if done processing
+    if (!result.messageSummary.includes("not ready yet")) {
+      return result;
+    }
+    
+    // Wait 5 minutes before next check
+    if (attempt < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
+    }
+  }
+  
+  throw new Error('Status check timed out');
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Create Employee"
+    icon="plus"
+    href="/api-reference/employee/create"
+  >
+    Submit employee data
+  </Card>
+  <Card
+    title="Create Client"
+    icon="user"
+    href="/api-reference/client/create"
+  >
+    Next: Add clients
+  </Card>
+  <Card
+    title="Submit Visit"
+    icon="calendar-check"
+    href="/api-reference/visit/create"
+  >
+    Create visits with employees
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="triangle-exclamation"
+    href="/concepts/error-handling"
+  >
+    Learn about error handling
+  </Card>
+</CardGroup>

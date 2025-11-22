@@ -1,0 +1,574 @@
+---
+title: 'Create/Update Client'
+api: 'POST https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1'
+description: 'Submit client (member/beneficiary) information to the EVV system'
+---
+
+## Overview
+
+The Client endpoint receives information about individuals receiving care. Clients must be successfully created before submitting visits.
+
+<Info>
+  **Important**: This endpoint handles both new client creation and updates to existing clients. Use incrementing `SequenceID` values for updates.
+</Info>
+
+## Endpoint
+
+<CodeGroup>
+
+```bash Production
+POST https://api.sandata.com/interfaces/intake/clients/rest/api/v1.1
+```
+
+```bash UAT
+POST https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1
+```
+
+</CodeGroup>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header
+  
+  Format: `Basic <base64(username:password)>`
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID (or use `EntityGuid` for multi-account)
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`
+</ParamField>
+
+## Request Body
+
+The request body must be a JSON array of client objects. Each transaction can contain 1-5,000 clients.
+
+### Provider Identification (Required)
+
+<ParamField body="ProviderIdentification" type="object" required>
+  <Expandable title="properties">
+    <ParamField body="ProviderQualifier" type="string" required>
+      Type of provider identifier
+      
+      **Value**: `MedicaidID`
+    </ParamField>
+    
+    <ParamField body="ProviderID" type="string" required>
+      9-digit DSS-AVRS Medicaid ID
+      
+      **Format**: `#########` (9 digits)
+      
+      **Max Length**: 64 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Client General Information (Required)
+
+<ParamField body="ClientQualifier" type="string" required>
+  Type of client identifier being sent
+  
+  **Value**: `ClientCustomID`
+  
+  **Note**: Must be mixed case exactly as shown
+</ParamField>
+
+<ParamField body="ClientIdentifier" type="string" required>
+  Unique 9-digit Medicaid ID for the client
+  
+  **Format**: `#########`
+  
+  **Max Length**: 64 characters
+  
+  **Note**: Must match `ClientCustomID` value
+</ParamField>
+
+<ParamField body="ClientFirstName" type="string" required>
+  Client's first name
+  
+  **Max Length**: 30 characters
+  
+  **Allowed Characters**:
+  - Alpha letters
+  - Hyphens (-)
+  - Periods (.)
+  - Apostrophes (')
+  
+  All other special characters will be rejected
+</ParamField>
+
+<ParamField body="ClientMiddleInitial" type="string">
+  Client's middle initial
+  
+  **Max Length**: 1 character
+</ParamField>
+
+<ParamField body="ClientLastName" type="string" required>
+  Client's last name
+  
+  **Max Length**: 30 characters
+  
+  **Allowed Characters**:
+  - Alpha letters
+  - Hyphens (-)
+  - Periods (.)
+  - Apostrophes (')
+  
+  All other special characters will be rejected
+</ParamField>
+
+<ParamField body="ClientMedicaidID" type="string" required>
+  9-digit Medicaid ID provided by the state
+  
+  **Format**: `#########`
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="MissingMedicaidID" type="string">
+  Indicator for newborn patients without Medicaid ID yet
+  
+  **Value**: `"false"` (default)
+  
+  **Max Length**: 5 characters
+</ParamField>
+
+<ParamField body="SequenceID" type="integer" required>
+  Sequence number for this client record
+  
+  **Rules**:
+  - First submission: Use 1
+  - Each update: Increment by 1 or more
+  - Can use timestamp format: `YYYYMMDDHHMMSS`
+  - Must be unique per client
+  - Gaps are allowed
+  
+  **Max Length**: 16 digits
+  
+  **Example**: `1`, `2`, `3` or `20240115093045`
+</ParamField>
+
+<ParamField body="ClientOtherID" type="string">
+  Additional user-defined client ID from your system
+  
+  **Max Length**: 24 characters
+  
+  **Note**: No special characters recommended
+</ParamField>
+
+<ParamField body="ClientTimeZone" type="string" required>
+  Client's primary time zone
+  
+  **Value**: `"US/Eastern"` (for Connecticut)
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="ClientCustomID" type="string" required>
+  Same as ClientIdentifier - 9-digit Medicaid ID
+  
+  **Format**: `#########`
+  
+  **Max Length**: 24 characters
+</ParamField>
+
+<ParamField body="ClientSSN" type="integer">
+  Last 5 digits of client's Social Security Number
+  
+  **Format**: `0000#####` (4 leading zeros + 5 digits)
+  
+  **Max Length**: 9 digits
+  
+  **Note**: Not required if ClientOtherID is provided
+</ParamField>
+
+### Client Address (Required)
+
+At least one complete address is required. Multiple addresses can be provided.
+
+<ParamField body="ClientAddress" type="array" required>
+  Array of address objects
+  
+  <Expandable title="Address Object Properties">
+    <ParamField body="ClientAddressType" type="string" required>
+      Type of address
+      
+      **Values**: `"Home"`, `"Business"`, `"Other"`
+      
+      **Default**: `"Other"` if not provided
+      
+      **Max Length**: 12 characters
+    </ParamField>
+    
+    <ParamField body="ClientAddressIsPrimary" type="string" required>
+      Whether this is the primary address
+      
+      **Values**: `"true"` or `"false"`
+      
+      **Note**: Exactly one address must be marked as primary
+      
+      **Max Length**: 5 characters
+    </ParamField>
+    
+    <ParamField body="ClientAddressLine1" type="string" required>
+      Street address line 1
+      
+      **Max Length**: 30 characters
+      
+      **Note**: PO Box allowed for Safe at Home participants (may impact GPS reporting)
+      
+      **Allowed Characters**:
+      - Alpha letters
+      - Hyphens (-)
+      - Periods (.)
+      - Hash (#)
+      - Apostrophes (')
+      - Underscores (_)
+      - Spaces
+    </ParamField>
+    
+    <ParamField body="ClientAddressLine2" type="string">
+      Street address line 2 (apartment, suite, etc.)
+      
+      **Max Length**: 30 characters
+      
+      **Allowed Characters**: Same as AddressLine1
+    </ParamField>
+    
+    <ParamField body="ClientCounty" type="string">
+      County name
+      
+      **Max Length**: 25 characters
+      
+      **Allowed Characters**:
+      - Alpha letters
+      - Hyphens (-)
+      - Periods (.)
+      - Apostrophes (')
+      - Underscores (_)
+      - Spaces
+    </ParamField>
+    
+    <ParamField body="ClientCity" type="string" required>
+      City name
+      
+      **Max Length**: 30 characters
+      
+      **Allowed Characters**:
+      - Alpha letters
+      - Hyphens (-)
+      - Periods (.)
+      - Underscores (_)
+      - Spaces
+    </ParamField>
+    
+    <ParamField body="ClientState" type="string" required>
+      Two-character state abbreviation
+      
+      **Format**: Must be capitalized (e.g., `"CT"`)
+      
+      **Max Length**: 2 characters
+    </ParamField>
+    
+    <ParamField body="ClientZip" type="string" required>
+      9-digit ZIP code
+      
+      **Format**: `#########` (5-digit ZIP + 4-digit extension)
+      
+      **Note**: If +4 extension unknown, use zeros
+      
+      **Max Length**: 9 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Client Payer Information (Optional)
+
+<ParamField body="ClientPayerInformation" type="array">
+  Array of payer/program associations for the client
+  
+  <Expandable title="Payer Information Properties">
+    <ParamField body="PayerID" type="string" required>
+      Sandata-assigned payer ID
+      
+      **Valid Values**:
+      - `CTDSS` - CT Dept of Social Services
+      - `CTHH` - CT Home Health
+      - `CTMHW` - CT Mental Health Waiver
+      
+      **Max Length**: 64 characters
+    </ParamField>
+    
+    <ParamField body="PayerProgram" type="string" required>
+      Program code for this payer
+      
+      **Valid Values**:
+      - `HHI` - Home Health Non-Waiver
+      - `ABI` - Acquired Brain Injury Waiver
+      - `AUI` - Autism Waiver
+      - `CHI` - CT Home Care Waiver
+      - `PCI` - Personal Care Waiver
+      - `ABP` - Acquired Brain Injury Non-Clinical
+      - `AUP` - Autism Professional
+      - `CHP` - CT Home Care Program
+      - `PCP` - Personal Care Assistant
+      - `MHP` - Mental Health Program
+      
+      **Max Length**: 9 characters
+    </ParamField>
+    
+    <ParamField body="ProcedureCode" type="string" required>
+      Billable procedure/revenue center code
+      
+      **Max Length**: 5 characters
+      
+      **Note**: See [Procedure Codes Reference](/reference/procedure-codes) for valid values by program
+    </ParamField>
+    
+    <ParamField body="Modifier1" type="string">
+      First modifier for procedure code
+      
+      **Max Length**: 2 characters
+      
+      **Note**: Use `"NULL"` if not applicable. Modifiers must be in order as defined in appendix.
+    </ParamField>
+    
+    <ParamField body="Modifier2" type="string">
+      Second modifier for procedure code
+      
+      **Max Length**: 2 characters
+    </ParamField>
+    
+    <ParamField body="Modifier3" type="string">
+      Third modifier for procedure code
+      
+      **Max Length**: 2 characters
+    </ParamField>
+    
+    <ParamField body="Modifier4" type="string">
+      Fourth modifier for procedure code
+      
+      **Max Length**: 2 characters
+    </ParamField>
+    
+    <ParamField body="ClientStatus" type="string" required>
+      Client's status with this payer
+      
+      **Values**:
+      - `"02"` - Active
+      - `"04"` - Inactive
+      
+      **Max Length**: 2 characters
+      
+      **Note**: Must include leading zero
+    </ParamField>
+    
+    <ParamField body="EffectiveStartDate" type="string">
+      Start date for this payer information
+      
+      **Format**: `YYYY-MM-DD`
+      
+      **Max Length**: 10 characters
+    </ParamField>
+    
+    <ParamField body="EffectiveEndDate" type="string">
+      End date for this payer information
+      
+      **Format**: `YYYY-MM-DD`
+      
+      **Max Length**: 10 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Client Phone (Optional)
+
+<ParamField body="ClientPhone" type="array">
+  Array of phone numbers for the client
+  
+  <Expandable title="Phone Object Properties">
+    <ParamField body="ClientPhoneType" type="string" required>
+      Type of phone number
+      
+      **Values**: `"Home"`, `"Mobile"`, `"Business"`, `"Other"`
+      
+      **Max Length**: 12 characters
+    </ParamField>
+    
+    <ParamField body="ClientPhone" type="string" required>
+      10-digit phone number including area code
+      
+      **Format**: `##########` (no dashes or spaces)
+      
+      **Max Length**: 10 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Response
+
+### Success Response
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "The result for the input UUID is not ready yet. Please try again.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "The result for the input UUID is not ready yet. Please try again.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+<ResponseField name="id" type="string">
+  Unique UUID for this transaction
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  `SUCCESS` or `FAILED`
+</ResponseField>
+
+<ResponseField name="messageSummary" type="string">
+  Summary message about the request
+</ResponseField>
+
+<ResponseField name="data.uuid" type="string">
+  UUID to use for status checks
+</ResponseField>
+
+### Error Response
+
+```json
+{
+  "id": "ea76e9a1-9b29-4f3d-af1c-6b573eb29b76",
+  "status": "FAILED",
+  "messageSummary": "[1] Records uploaded, please check errors/warnings and try again.",
+  "data": [{
+    "ClientFirstName": "John",
+    "ClientLastName": "Doe",
+    "ErrorCode": "-100",
+    "ErrorMessage": "ERROR: ClientMedicaidID is required. The record is being rejected."
+  }]
+}
+```
+
+## Example Request
+
+```json
+[{
+  "ProviderIdentification": {
+    "ProviderQualifier": "MedicaidID",
+    "ProviderID": "123456789"
+  },
+  "ClientQualifier": "ClientCustomID",
+  "ClientIdentifier": "987654321",
+  "ClientFirstName": "Jane",
+  "ClientMiddleInitial": "M",
+  "ClientLastName": "Doe",
+  "ClientMedicaidID": "987654321",
+  "MissingMedicaidID": "false",
+  "SequenceID": 1,
+  "ClientOtherID": "CLI001",
+  "ClientTimeZone": "US/Eastern",
+  "ClientCustomID": "987654321",
+  "ClientSSN": 12345,
+  "ClientAddress": [{
+    "ClientAddressType": "Home",
+    "ClientAddressIsPrimary": "true",
+    "ClientAddressLine1": "123 Main Street",
+    "ClientAddressLine2": "Apt 4B",
+    "ClientCounty": "Hartford",
+    "ClientCity": "Hartford",
+    "ClientState": "CT",
+    "ClientZip": "061011234"
+  }],
+  "ClientPayerInformation": [{
+    "PayerID": "CTHH",
+    "PayerProgram": "HHI",
+    "ProcedureCode": "T1004",
+    "Modifier1": "NULL",
+    "Modifier2": "NULL",
+    "Modifier3": "NULL",
+    "Modifier4": "NULL",
+    "ClientStatus": "02",
+    "EffectiveStartDate": "2024-01-01",
+    "EffectiveEndDate": "2024-12-31"
+  }],
+  "ClientPhone": [{
+    "ClientPhoneType": "Mobile",
+    "ClientPhone": "8605551234"
+  }]
+}]
+```
+
+## Business Rules
+
+<Warning>
+  **Critical Validation Rules**
+</Warning>
+
+### Required Fields
+
+The following fields are **always required**:
+- `ProviderIdentification` (complete object)
+- `ClientQualifier`
+- `ClientIdentifier`
+- `ClientFirstName`
+- `ClientLastName`
+- `ClientMedicaidID`
+- `SequenceID`
+- `ClientTimeZone`
+- `ClientCustomID`
+- At least one complete `ClientAddress`
+
+### Address Requirements
+
+- At least one address with all required fields (Line1, City, State, Zip)
+- Exactly one address must have `ClientAddressIsPrimary` = `"true"`
+- Multiple addresses of the same type are allowed
+
+### Sequence Rules
+
+- First submission for a client: SequenceID = 1
+- Each update: Increment SequenceID
+- Duplicate SequenceID will be rejected
+- Lower SequenceID than previously processed will be accepted but logged as historical
+
+### Field Validation
+
+- **ClientIdentifier** must equal **ClientCustomID**
+- **ClientMedicaidID** must be 9 digits
+- **ClientFirstName** and **ClientLastName** only allow: letters, hyphens, periods, apostrophes
+- **ClientState** must be uppercase 2-letter code
+- **ClientZip** must be exactly 9 digits
+
+## Next Steps
+
+After submitting clients:
+
+1. **Check Status**: Use the UUID to check processing status
+2. **Create Employees**: Submit employee records
+3. **Submit Visits**: Create visits linking clients and employees
+
+<CardGroup cols={2}>
+  <Card
+    title="Check Status"
+    icon="magnifying-glass"
+    href="/api-reference/client/status"
+  >
+    Query the status of your client submission
+  </Card>
+  <Card
+    title="Create Employee"
+    icon="user"
+    href="/api-reference/employee/create"
+  >
+    Submit employee information
+  </Card>
+</CardGroup>

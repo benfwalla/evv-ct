@@ -1,0 +1,486 @@
+---
+title: 'API Playground'
+description: 'Interactive API testing and token management'
+---
+
+## Overview
+
+Test the CT EVV API directly from this documentation using the interactive playground. Configure your credentials once and test all endpoints.
+
+<Warning>
+  **Security**: Never use production credentials in public documentation. Use UAT credentials only.
+</Warning>
+
+## Setup Your Credentials
+
+### Step 1: Encode Your Credentials
+
+Your API credentials must be Base64 encoded for Basic Authentication.
+
+<CodeGroup>
+
+```bash Terminal
+echo -n "your-username:your-password" | base64
+```
+
+```javascript JavaScript
+const credentials = btoa('your-username:your-password');
+console.log(credentials);
+```
+
+```python Python
+import base64
+credentials = base64.b64encode(b'your-username:your-password').decode('utf-8')
+print(credentials)
+```
+
+</CodeGroup>
+
+### Step 2: Configure Environment
+
+Choose your environment and save your credentials:
+
+<Tabs>
+  <Tab title="UAT (Testing)">
+    **Base URL**: `https://uat-api.sandata.com/interfaces/intake`
+    
+    **Use for**:
+    - Development
+    - Testing
+    - Training
+    - Integration testing
+    
+    **Safe to test**: Yes
+  </Tab>
+  
+  <Tab title="Production">
+    **Base URL**: `https://api.sandata.com/interfaces/intake`
+    
+    **Use for**:
+    - Live operations only
+    - Real client data
+    - Actual billing
+    
+    **Safe to test**: No - use UAT instead
+  </Tab>
+</Tabs>
+
+## Interactive Testing
+
+### Test Client Endpoint
+
+<Card title="POST Client" icon="user">
+  ```bash
+  curl -X POST https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1 \
+    -H "Authorization: Basic YOUR_ENCODED_CREDENTIALS" \
+    -H "Account: YOUR_ACCOUNT_ID" \
+    -H "Content-Type: application/json" \
+    -d '[{
+      "ProviderIdentification": {
+        "ProviderQualifier": "MedicaidID",
+        "ProviderID": "123456789"
+      },
+      "ClientQualifier": "ClientCustomID",
+      "ClientIdentifier": "TEST001",
+      "ClientFirstName": "Test",
+      "ClientLastName": "Client",
+      "ClientMedicaidID": "TEST001",
+      "SequenceID": 1,
+      "ClientTimeZone": "US/Eastern",
+      "ClientCustomID": "TEST001",
+      "ClientAddress": [{
+        "ClientAddressType": "Home",
+        "ClientAddressIsPrimary": "true",
+        "ClientAddressLine1": "123 Test Street",
+        "ClientCity": "Hartford",
+        "ClientState": "CT",
+        "ClientZip": "061011234"
+      }]
+    }]'
+  ```
+</Card>
+
+### Test Employee Endpoint
+
+<Card title="POST Employee" icon="id-badge">
+  ```bash
+  curl -X POST https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1 \
+    -H "Authorization: Basic YOUR_ENCODED_CREDENTIALS" \
+    -H "Account: YOUR_ACCOUNT_ID" \
+    -H "Content-Type: application/json" \
+    -d '[{
+      "ProviderIdentification": {
+        "ProviderQualifier": "MedicaidID",
+        "ProviderID": "123456789"
+      },
+      "EmployeeQualifier": "EmployeeSSN",
+      "EmployeeIdentifier": "000099999",
+      "EmployeeOtherID": "TESTEMP001",
+      "SequenceID": 1,
+      "EmployeeSSN": "000099999",
+      "EmployeeLastName": "Test",
+      "EmployeeFirstName": "Employee",
+      "EmployeeEmail": "test.employee@example.com"
+    }]'
+  ```
+</Card>
+
+### Test Visit Endpoint
+
+<Card title="POST Visit" icon="calendar-check">
+  ```bash
+  curl -X POST https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1 \
+    -H "Authorization: Basic YOUR_ENCODED_CREDENTIALS" \
+    -H "Account: YOUR_ACCOUNT_ID" \
+    -H "Content-Type: application/json" \
+    -d '[{
+      "ProviderIdentification": {
+        "ProviderQualifier": "MedicaidID",
+        "ProviderID": "123456789"
+      },
+      "VisitOtherID": "TESTVISIT001",
+      "SequenceID": 1,
+      "EmployeeQualifier": "EmployeeSSN",
+      "EmployeeIdentifier": "000099999",
+      "ClientIDQualifier": "ClientCustomID",
+      "ClientIdentifier": "TEST001",
+      "ClientID": "TEST001",
+      "PayerID": "CTHH",
+      "PayerProgram": "HHI",
+      "ProcedureCode": "T1004",
+      "VisitTimeZone": "US/Eastern",
+      "BillVisit": true,
+      "Calls": [{
+        "CallExternalID": "TESTCALL001",
+        "CallDateTime": "2024-01-15T14:00:00Z",
+        "CallAssignment": "Time In",
+        "CallType": "Mobile",
+        "ProcedureCode": "T1004",
+        "MobileLogin": "test.employee@example.com",
+        "CallLatitude": 41.765800000000000,
+        "CallLongitude": -72.673400000000000
+      }, {
+        "CallExternalID": "TESTCALL002",
+        "CallDateTime": "2024-01-15T18:00:00Z",
+        "CallAssignment": "Time Out",
+        "CallType": "Mobile",
+        "ProcedureCode": "T1004",
+        "MobileLogin": "test.employee@example.com",
+        "CallLatitude": 41.765800000000000,
+        "CallLongitude": -72.673400000000000
+      }]
+    }]'
+  ```
+</Card>
+
+### Check Status
+
+<Card title="GET Status" icon="magnifying-glass">
+  ```bash
+  # Replace UUID with the one from POST response
+  curl -X GET "https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1/status?uuid=YOUR_UUID" \
+    -H "Authorization: Basic YOUR_ENCODED_CREDENTIALS" \
+    -H "Account: YOUR_ACCOUNT_ID"
+  ```
+</Card>
+
+## Postman Collection
+
+### Import Collection
+
+Download and import our Postman collection for easy testing:
+
+<Steps>
+  <Step title="Download Collection">
+    Download the [CT EVV API Postman Collection](./postman/ct-evv-api.json)
+  </Step>
+  
+  <Step title="Import to Postman">
+    1. Open Postman
+    2. Click "Import"
+    3. Select the downloaded JSON file
+    4. Collection will be added to your workspace
+  </Step>
+  
+  <Step title="Configure Environment">
+    1. Create new environment in Postman
+    2. Add variables:
+       - `base_url`: `https://uat-api.sandata.com/interfaces/intake`
+       - `auth_token`: Your Base64 encoded credentials
+       - `account_id`: Your account ID
+       - `provider_id`: Your 9-digit provider ID
+  </Step>
+  
+  <Step title="Test Endpoints">
+    1. Select environment
+    2. Choose endpoint from collection
+    3. Click "Send"
+    4. Review response
+  </Step>
+</Steps>
+
+## Testing Workflow
+
+### Complete Test Scenario
+
+<Steps>
+  <Step title="Create Employee">
+    ```bash
+    POST /employees/rest/api/v1.1
+    ```
+    
+    Save the UUID from response
+  </Step>
+  
+  <Step title="Wait & Check Employee Status">
+    ```bash
+    # Wait 5 minutes
+    sleep 300
+    
+    # Check status
+    GET /employees/rest/api/v1.1/status?uuid={uuid}
+    ```
+    
+    Verify "All records updated successfully"
+  </Step>
+  
+  <Step title="Create Client">
+    ```bash
+    POST /clients/rest/api/v1.1
+    ```
+    
+    Save the UUID from response
+  </Step>
+  
+  <Step title="Wait & Check Client Status">
+    ```bash
+    # Wait 5 minutes
+    sleep 300
+    
+    # Check status
+    GET /clients/rest/api/v1.1/status?uuid={uuid}
+    ```
+    
+    Verify "All records updated successfully"
+  </Step>
+  
+  <Step title="Create Visit">
+    ```bash
+    POST /visits/rest/api/v1.1
+    ```
+    
+    Use employee and client from previous steps
+  </Step>
+  
+  <Step title="Wait & Check Visit Status">
+    ```bash
+    # Wait 5 minutes
+    sleep 300
+    
+    # Check status
+    GET /visits/rest/api/v1.1/status?uuid={uuid}
+    ```
+    
+    Verify "All records updated successfully"
+  </Step>
+</Steps>
+
+## Test Data Generator
+
+### Generate Test IDs
+
+Use these patterns for test data:
+
+```javascript
+// Generate unique test IDs
+const timestamp = Date.now();
+
+const testClient = {
+  ClientIdentifier: `TEST${timestamp}`,
+  ClientMedicaidID: `TEST${timestamp}`,
+  ClientCustomID: `TEST${timestamp}`,
+  ClientOtherID: `CLI${timestamp}`
+};
+
+const testEmployee = {
+  EmployeeIdentifier: `0000${timestamp.toString().slice(-5)}`,
+  EmployeeSSN: `0000${timestamp.toString().slice(-5)}`,
+  EmployeeOtherID: `EMP${timestamp}`
+};
+
+const testVisit = {
+  VisitOtherID: `VISIT${timestamp}`
+};
+```
+
+### Sample Test Data
+
+```json
+{
+  "testProvider": {
+    "ProviderQualifier": "MedicaidID",
+    "ProviderID": "999999999"
+  },
+  "testClient": {
+    "ClientIdentifier": "TEST123456",
+    "ClientFirstName": "Test",
+    "ClientLastName": "Client",
+    "ClientMedicaidID": "TEST123456"
+  },
+  "testEmployee": {
+    "EmployeeIdentifier": "000012345",
+    "EmployeeFirstName": "Test",
+    "EmployeeLastName": "Employee",
+    "EmployeeSSN": "000012345"
+  }
+}
+```
+
+## Automated Testing Script
+
+### Node.js Test Script
+
+```javascript
+const axios = require('axios');
+
+const config = {
+  baseURL: 'https://uat-api.sandata.com/interfaces/intake',
+  headers: {
+    'Authorization': 'Basic YOUR_ENCODED_CREDENTIALS',
+    'Account': 'YOUR_ACCOUNT_ID',
+    'Content-Type': 'application/json'
+  }
+};
+
+async function testAPI() {
+  try {
+    // 1. Create Employee
+    console.log('Creating employee...');
+    const empResponse = await axios.post(
+      '/employees/rest/api/v1.1',
+      [{ /* employee data */ }],
+      config
+    );
+    const empUUID = empResponse.data.data.uuid;
+    console.log(`Employee UUID: ${empUUID}`);
+    
+    // 2. Wait and check status
+    await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
+    const empStatus = await axios.get(
+      `/employees/rest/api/v1.1/status?uuid=${empUUID}`,
+      config
+    );
+    console.log(`Employee Status: ${empStatus.data.messageSummary}`);
+    
+    // 3. Create Client
+    console.log('Creating client...');
+    const clientResponse = await axios.post(
+      '/clients/rest/api/v1.1',
+      [{ /* client data */ }],
+      config
+    );
+    const clientUUID = clientResponse.data.data.uuid;
+    console.log(`Client UUID: ${clientUUID}`);
+    
+    // Continue with visit...
+    
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+  }
+}
+
+testAPI();
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized">
+    **Problem**: Authentication failed
+    
+    **Solutions**:
+    - Verify credentials are correct
+    - Check Base64 encoding
+    - Ensure Authorization header format is correct
+    - Verify Account ID matches credentials
+  </Accordion>
+  
+  <Accordion title="403 Forbidden">
+    **Problem**: Account mismatch
+    
+    **Solutions**:
+    - Verify Account ID is correct
+    - Check EntityGuid if multi-account
+    - Ensure credentials match account
+    - Contact support if persists
+  </Accordion>
+  
+  <Accordion title="422 Validation Error">
+    **Problem**: Data validation failed
+    
+    **Solutions**:
+    - Review error message in response
+    - Check required fields are present
+    - Verify data formats are correct
+    - Test with minimal valid payload first
+  </Accordion>
+  
+  <Accordion title="UUID Not Found">
+    **Problem**: Status check returns not found
+    
+    **Solutions**:
+    - Verify UUID is correct
+    - Check UUID hasn't expired (48 hours)
+    - Ensure POST was successful
+    - Try resubmitting if needed
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use UAT for Testing">
+    - Never test in production
+    - Use UAT environment for all development
+    - Test thoroughly before moving to production
+    - Keep UAT and production credentials separate
+  </Accordion>
+  
+  <Accordion title="Unique Test IDs">
+    - Use timestamps or UUIDs for test data
+    - Avoid reusing test IDs
+    - Clean up test data periodically
+    - Document test data patterns
+  </Accordion>
+  
+  <Accordion title="Automated Testing">
+    - Create automated test suites
+    - Test all endpoints regularly
+    - Validate responses programmatically
+    - Monitor for API changes
+  </Accordion>
+  
+  <Accordion title="Error Handling">
+    - Log all requests and responses
+    - Handle all error scenarios
+    - Implement retry logic
+    - Alert on failures
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn about authentication
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    View all endpoints
+  </Card>
+  <Card title="Business Rules" icon="book" href="/business-rules/overview">
+    Understand validation rules
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/concepts/error-handling">
+    Handle errors properly
+  </Card>
+</CardGroup>

@@ -1,0 +1,662 @@
+---
+title: 'Create/Update Visit'
+api: 'POST https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1'
+description: 'Submit EVV visit data including calls, tasks, and changes'
+---
+
+## Overview
+
+The Visit endpoint receives EVV visit information including employee check-in/check-out, services provided, tasks performed, and any adjustments or changes.
+
+<Warning>
+  **Prerequisites**: Both the employee and client referenced in the visit must already exist in the system.
+</Warning>
+
+## Endpoint
+
+<CodeGroup>
+
+```bash Production
+POST https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1
+```
+
+```bash UAT
+POST https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1
+```
+
+</CodeGroup>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header
+  
+  Format: `Basic <base64(username:password)>`
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`
+</ParamField>
+
+## Request Body
+
+The request body must be a JSON array of visit objects. Each transaction can contain 1-5,000 visits.
+
+### Provider Identification (Required)
+
+<ParamField body="ProviderIdentification" type="object" required>
+  <Expandable title="properties">
+    <ParamField body="ProviderQualifier" type="string" required>
+      **Value**: `MedicaidID`
+    </ParamField>
+    
+    <ParamField body="ProviderID" type="string" required>
+      9-digit DSS-AVRS Medicaid ID
+      
+      **Format**: `#########`
+      
+      **Max Length**: 64 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Visit General Information (Required)
+
+<ParamField body="VisitOtherID" type="string" required>
+  Unique visit identifier from your system
+  
+  **Max Length**: 50 characters
+  
+  **Note**: Must be unique per visit. Used for tracking and updates.
+</ParamField>
+
+<ParamField body="SequenceID" type="integer" required>
+  Sequence number for this visit record
+  
+  **Rules**:
+  - First submission: Use 1
+  - Each update: Increment
+  - Can use timestamp: `YYYYMMDDHHMMSS`
+  
+  **Max Length**: 16 digits
+</ParamField>
+
+<ParamField body="EmployeeQualifier" type="string" required>
+  **Value**: `EmployeeSSN`
+  
+  **Max Length**: 20 characters
+</ParamField>
+
+<ParamField body="EmployeeOtherID" type="string">
+  Employee's external ID from your system
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="EmployeeIdentifier" type="string" required>
+  Employee SSN-based identifier
+  
+  **Format**: `#########` (4 leading + 5 SSN digits)
+  
+  **Max Length**: 9 characters
+  
+  **Note**: Must match an existing employee
+</ParamField>
+
+<ParamField body="GroupCode" type="string">
+  For group visits (multiple clients or caregivers)
+  
+  **Max Length**: 6 characters
+</ParamField>
+
+<ParamField body="ClientIDQualifier" type="string" required>
+  **Value**: `ClientCustomID`
+  
+  **Max Length**: 20 characters
+</ParamField>
+
+<ParamField body="ClientIdentifier" type="string" required>
+  Client's 9-digit Medicaid ID
+  
+  **Format**: `#########`
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="ClientID" type="string" required>
+  Client's 9-digit Medicaid ID (same as ClientIdentifier)
+  
+  **Format**: `#########`
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="ClientOtherID" type="string">
+  Client's external ID from your system
+  
+  **Max Length**: 24 characters
+</ParamField>
+
+<ParamField body="VisitCancelledIndicator" type="string">
+  Whether to cancel this visit
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Default**: `"false"`
+  
+  **Note**: Can only be true if NO calls exist and NO adjusted times
+  
+  **Max Length**: 5 characters
+</ParamField>
+
+<ParamField body="PayerID" type="string" required>
+  Sandata-assigned payer ID
+  
+  **Valid Values**:
+  - `CTDSS` - CT Dept of Social Services
+  - `CTHH` - CT Home Health
+  - `CTMHW` - CT Mental Health Waiver
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="PayerProgram" type="string" required>
+  Program code
+  
+  **Valid Values**:
+  - `HHI` - Home Health Non-Waiver
+  - `ABI`, `AUI`, `CHI`, `PCI` - Waiver programs
+  - `ABP`, `AUP`, `CHP`, `PCP` - Non-Clinical programs
+  - `MHP` - Mental Health Program
+  
+  **Max Length**: 9 characters
+</ParamField>
+
+<ParamField body="ProcedureCode" type="string" required>
+  Billable procedure/revenue center code
+  
+  **Max Length**: 5 characters
+  
+  **Note**: See [Procedure Codes](/reference/procedure-codes)
+</ParamField>
+
+<ParamField body="Modifier1" type="string">
+  First modifier
+  
+  **Max Length**: 2 characters
+  
+  **Note**: Use `"NULL"` if not applicable
+</ParamField>
+
+<ParamField body="Modifier2" type="string">
+  Second modifier
+  
+  **Max Length**: 2 characters
+</ParamField>
+
+<ParamField body="Modifier3" type="string">
+  Third modifier
+  
+  **Max Length**: 2 characters
+</ParamField>
+
+<ParamField body="Modifier4" type="string">
+  Fourth modifier
+  
+  **Max Length**: 2 characters
+</ParamField>
+
+<ParamField body="VisitTimeZone" type="string" required>
+  Visit time zone
+  
+  **Value**: `"US/Eastern"` (for Connecticut)
+  
+  **Max Length**: 64 characters
+</ParamField>
+
+<ParamField body="AdjInDateTime" type="string">
+  Adjusted check-in time (if different from call time)
+  
+  **Format**: `YYYY-MM-DDTHH:MM:SSZ` (UTC)
+  
+  **Max Length**: 20 characters
+  
+  **Note**: If provided, VisitChanges segment is REQUIRED
+</ParamField>
+
+<ParamField body="AdjOutDateTime" type="string">
+  Adjusted check-out time (if different from call time)
+  
+  **Format**: `YYYY-MM-DDTHH:MM:SSZ` (UTC)
+  
+  **Max Length**: 20 characters
+  
+  **Note**: If provided, VisitChanges segment is REQUIRED
+</ParamField>
+
+<ParamField body="BillVisit" type="string" required>
+  Whether visit should be billed
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Default**: `"true"`
+  
+  **Note**: Set to false to omit from billing
+  
+  **Max Length**: 5 characters
+</ParamField>
+
+<ParamField body="Memo" type="string">
+  Free-form notes about the visit
+  
+  **Max Length**: 1024 characters
+</ParamField>
+
+<ParamField body="ClientVerifiedTimes" type="string">
+  Whether client verified times
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Max Length**: 5 characters
+</ParamField>
+
+<ParamField body="ClientVerifiedTasks" type="string">
+  Whether client verified tasks
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Max Length**: 5 characters
+</ParamField>
+
+<ParamField body="ClientVerifiedService" type="string">
+  Whether client verified service
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Max Length**: 5 characters
+</ParamField>
+
+<ParamField body="ClientSignatureAvailable" type="string">
+  Whether client signature was captured
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Max Length**: 5 characters
+  
+  **Note**: Actual signature not transferred
+</ParamField>
+
+<ParamField body="ClientVoiceRecording" type="string">
+  Whether voice recording was captured
+  
+  **Values**: `"true"` or `"false"`
+  
+  **Max Length**: 5 characters
+  
+  **Note**: Actual recording not transferred
+</ParamField>
+
+### Calls Segment (Conditional)
+
+Required for first visit submission. Can be omitted for updates with adjusted times.
+
+<ParamField body="Calls" type="array">
+  Array of call objects (up to 2: Time In and Time Out)
+  
+  <Expandable title="Call Object Properties">
+    <ParamField body="CallExternalID" type="string" required>
+      Call identifier from your system
+      
+      **Max Length**: 16 characters
+    </ParamField>
+    
+    <ParamField body="CallDateTime" type="string" required>
+      Date/time of the call event
+      
+      **Format**: `YYYY-MM-DDTHH:MM:SSZ` (UTC)
+      
+      **Max Length**: 20 characters
+    </ParamField>
+    
+    <ParamField body="CallAssignment" type="string" required>
+      Type of call
+      
+      **Values**: `"Time In"` or `"Time Out"`
+      
+      **Max Length**: 10 characters
+    </ParamField>
+    
+    <ParamField body="GroupCode" type="string">
+      Group code if applicable
+      
+      **Max Length**: 6 characters
+    </ParamField>
+    
+    <ParamField body="CallType" type="string" required>
+      Method used for check-in/out
+      
+      **Values**:
+      - `"Mobile"` - GPS-enabled device
+      - `"Telephony"` - Phone call
+      - `"FVV"` - Fixed Visit Verification
+      - `"Manual"` - Manually entered
+      
+      **Max Length**: 20 characters
+      
+      **Note**: Different CallTypes require different fields
+    </ParamField>
+    
+    <ParamField body="ProcedureCode" type="string" required>
+      Procedure code for this call
+      
+      **Max Length**: 5 characters
+    </ParamField>
+    
+    <ParamField body="ClientIdentifierOnCall" type="string">
+      Client ID entered during call
+      
+      **Format**: `#########`
+      
+      **Max Length**: 10 characters
+    </ParamField>
+    
+    <ParamField body="MobileLogin" type="string">
+      Employee's mobile app login
+      
+      **Max Length**: 64 characters
+      
+      **Required if**: CallType = "Mobile"
+    </ParamField>
+    
+    <ParamField body="CallLatitude" type="decimal">
+      GPS latitude
+      
+      **Range**: -90 to 90
+      
+      **Format**: Decimal with 15-digit precision
+      
+      **Example**: `41.765800000000000`
+      
+      **Max Length**: 19 characters
+      
+      **Required if**: CallType = "Mobile"
+    </ParamField>
+    
+    <ParamField body="CallLongitude" type="decimal">
+      GPS longitude
+      
+      **Range**: -180 to 180
+      
+      **Format**: Decimal with 15-digit precision
+      
+      **Example**: `-72.673400000000000`
+      
+      **Max Length**: 20 characters
+      
+      **Required if**: CallType = "Mobile"
+    </ParamField>
+    
+    <ParamField body="TelephonyPIN" type="integer">
+      Employee's telephony PIN
+      
+      **Max Length**: 9 digits
+      
+      **Required if**: CallType = "Telephony"
+    </ParamField>
+    
+    <ParamField body="OriginatingPhoneNumber" type="string">
+      Phone number used for call
+      
+      **Format**: `##########` (10 digits, no dashes)
+      
+      **Max Length**: 10 characters
+      
+      **Required if**: CallType = "Telephony"
+    </ParamField>
+    
+    <ParamField body="VisitLocationType" type="string">
+      Self-reported location type
+      
+      **Values**:
+      - `"1"` - Home
+      - `"2"` - Community
+      
+      **Max Length**: 25 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Visit Changes Segment (Conditional)
+
+Required when: CallType = "Manual", Adjusted times exist, or any visit update.
+
+<ParamField body="VisitChanges" type="array">
+  Array of change log entries
+  
+  <Expandable title="Visit Changes Properties">
+    <ParamField body="SequenceID" type="string" required>
+      Sequence ID of this change
+      
+      **Format**: `YYYYMMDDHHMMSS` or integer
+      
+      **Max Length**: 16 characters
+    </ParamField>
+    
+    <ParamField body="ChangeMadeBy" type="string" required>
+      User who made the change
+      
+      **Max Length**: 64 characters
+      
+      **Example**: Username or email
+    </ParamField>
+    
+    <ParamField body="ChangeDateTime" type="string" required>
+      When the change was made
+      
+      **Format**: `YYYY-MM-DDTHH:MM:SSZ` (UTC)
+      
+      **Max Length**: 20 characters
+    </ParamField>
+    
+    <ParamField body="GroupCode" type="string">
+      Group code if applicable
+      
+      **Max Length**: 6 characters
+    </ParamField>
+    
+    <ParamField body="ReasonCode" type="string" required>
+      Reason for the change
+      
+      **Max Length**: 4 characters
+      
+      **Note**: See [Reason Codes](/reference/reason-codes)
+    </ParamField>
+    
+    <ParamField body="ChangeReasonMemo" type="string">
+      Additional explanation
+      
+      **Max Length**: 256 characters
+      
+      **Required if**:
+      - ReasonCode = "22" (Other)
+      - ReasonCode = "Participant Refusal"
+      - CallType = "Manual"
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Tasks Segment (Conditional)
+
+Required for programs: ABP, AUP, CHP, PCP, MHP
+
+<ParamField body="Tasks" type="array">
+  Array of tasks performed
+  
+  <Expandable title="Task Properties">
+    <ParamField body="TaskID" type="string" required>
+      Task identifier
+      
+      **Max Length**: 4 characters
+      
+      **Note**: See [Tasks Reference](/reference/tasks)
+    </ParamField>
+    
+    <ParamField body="TaskReading" type="string">
+      Task measurement/reading
+      
+      **Max Length**: 10 characters
+      
+      **Example**: "98.6" for temperature
+    </ParamField>
+    
+    <ParamField body="TaskRefused" type="boolean">
+      Whether client refused task
+      
+      **Values**: `true` or `false`
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Visit Exception Acknowledgement (Conditional)
+
+For acknowledging exceptions that cannot be fixed.
+
+<ParamField body="VisitExceptionAcknowledgement" type="array">
+  Array of exception acknowledgements
+  
+  <Expandable title="Exception Properties">
+    <ParamField body="ExceptionID" type="string" required>
+      Exception identifier
+      
+      **Max Length**: 2 characters
+      
+      **Example**: "15"
+    </ParamField>
+    
+    <ParamField body="ExceptionAcknowledged" type="string" required>
+      Whether exception is acknowledged
+      
+      **Values**: `"true"` or `"false"`
+      
+      **Max Length**: 5 characters
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Example: Mobile Visit with GPS
+
+```json
+[{
+  "ProviderIdentification": {
+    "ProviderQualifier": "MedicaidID",
+    "ProviderID": "123456789"
+  },
+  "VisitOtherID": "VISIT001",
+  "SequenceID": 1,
+  "EmployeeQualifier": "EmployeeSSN",
+  "EmployeeIdentifier": "000012345",
+  "ClientIDQualifier": "ClientCustomID",
+  "ClientIdentifier": "987654321",
+  "ClientID": "987654321",
+  "PayerID": "CTHH",
+  "PayerProgram": "HHI",
+  "ProcedureCode": "T1004",
+  "VisitTimeZone": "US/Eastern",
+  "BillVisit": true,
+  "Calls": [{
+    "CallExternalID": "CALL001",
+    "CallDateTime": "2024-01-15T09:00:00Z",
+    "CallAssignment": "Time In",
+    "CallType": "Mobile",
+    "ProcedureCode": "T1004",
+    "MobileLogin": "john.smith@example.com",
+    "CallLatitude": 41.765800000000000,
+    "CallLongitude": -72.673400000000000,
+    "VisitLocationType": "1"
+  }, {
+    "CallExternalID": "CALL002",
+    "CallDateTime": "2024-01-15T13:00:00Z",
+    "CallAssignment": "Time Out",
+    "CallType": "Mobile",
+    "ProcedureCode": "T1004",
+    "MobileLogin": "john.smith@example.com",
+    "CallLatitude": 41.765800000000000,
+    "CallLongitude": -72.673400000000000,
+    "VisitLocationType": "1"
+  }],
+  "Tasks": [{
+    "TaskID": "130",
+    "TaskRefused": false
+  }]
+}]
+```
+
+## Example: Visit with Adjusted Times
+
+```json
+[{
+  "ProviderIdentification": {
+    "ProviderQualifier": "MedicaidID",
+    "ProviderID": "123456789"
+  },
+  "VisitOtherID": "VISIT002",
+  "SequenceID": 1,
+  "EmployeeQualifier": "EmployeeSSN",
+  "EmployeeIdentifier": "000012345",
+  "ClientIDQualifier": "ClientCustomID",
+  "ClientIdentifier": "987654321",
+  "ClientID": "987654321",
+  "PayerID": "CTHH",
+  "PayerProgram": "HHI",
+  "ProcedureCode": "T1004",
+  "VisitTimeZone": "US/Eastern",
+  "AdjInDateTime": "2024-01-15T09:00:00Z",
+  "AdjOutDateTime": "2024-01-15T13:00:00Z",
+  "BillVisit": true,
+  "Calls": [{
+    "CallExternalID": "CALL003",
+    "CallDateTime": "2024-01-15T09:10:00Z",
+    "CallAssignment": "Time In",
+    "CallType": "Mobile",
+    "ProcedureCode": "T1004",
+    "MobileLogin": "john.smith@example.com",
+    "CallLatitude": 41.765800000000000,
+    "CallLongitude": -72.673400000000000
+  }, {
+    "CallExternalID": "CALL004",
+    "CallDateTime": "2024-01-15T12:50:00Z",
+    "CallAssignment": "Time Out",
+    "CallType": "Mobile",
+    "ProcedureCode": "T1004",
+    "MobileLogin": "john.smith@example.com",
+    "CallLatitude": 41.765800000000000,
+    "CallLongitude": -72.673400000000000
+  }],
+  "VisitChanges": [{
+    "SequenceID": "1",
+    "ChangeMadeBy": "supervisor@example.com",
+    "ChangeDateTime": "2024-01-15T14:00:00Z",
+    "ReasonCode": "12",
+    "ChangeReasonMemo": "Employee checked in late"
+  }]
+}]
+```
+
+## Business Rules
+
+See [Visit Business Rules](/business-rules/visit-rules) and [Call Logic](/business-rules/call-logic) for complete validation rules.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Check Status" icon="magnifying-glass" href="/api-reference/visit/status">
+    Query submission status
+  </Card>
+  <Card title="Call Logic" icon="clock" href="/business-rules/call-logic">
+    Understand call time scenarios
+  </Card>
+</CardGroup>

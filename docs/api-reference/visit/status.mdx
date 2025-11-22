@@ -1,0 +1,122 @@
+---
+title: 'Check Visit Status'
+api: 'GET https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1/status'
+description: 'Query the processing status of a visit submission'
+---
+
+## Overview
+
+After submitting visit data via POST, use this endpoint to check if the submission has been processed successfully or if there were any errors.
+
+<Info>
+  **Wait Time**: Wait at least 5 minutes after POST before checking status. The UUID is available for 48 hours.
+</Info>
+
+## Endpoint
+
+<CodeGroup>
+
+```bash Production
+GET https://api.sandata.com/interfaces/intake/visits/rest/api/v1.1/status?uuid={uuid}
+```
+
+```bash UAT
+GET https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1/status?uuid={uuid}
+```
+
+</CodeGroup>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Basic Authentication header
+</ParamField>
+
+<ParamField header="Account" type="string" required>
+  Your Sandata account ID
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="uuid" type="string" required>
+  The UUID returned from the POST request
+</ParamField>
+
+## Response States
+
+### Processing
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "The result for the input UUID is not ready yet. Please try again.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "The result for the input UUID is not ready yet. Please try again.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+### Success
+
+```json
+{
+  "id": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+  "status": "SUCCESS",
+  "messageSummary": "All records updated successfully.",
+  "data": {
+    "uuid": "7f6dcd1a-ec5e-4efd-a2d4-1049756016a5",
+    "account": "12345",
+    "message": "All records updated successfully.",
+    "reason": "Transaction Received."
+  }
+}
+```
+
+### Failure
+
+```json
+{
+  "id": "ea76e9a1-9b29-4f3d-af1c-6b573eb29b76",
+  "status": "SUCCESS",
+  "messageSummary": "[2] Records uploaded, please check errors/warnings and try again.",
+  "data": [{
+    "VisitOtherID": "VISIT001",
+    "SequenceID": 1,
+    "ErrorCode": "-100",
+    "ErrorMessage": "ERROR: Client not found. Client must exist before submitting visit."
+  }, {
+    "VisitOtherID": "VISIT002",
+    "SequenceID": 1,
+    "ErrorCode": "TIME-01",
+    "ErrorMessage": "ERROR: Call Out must be greater than Call In. CallIn: 2024-01-15T09:00:00Z, CallOut: 2024-01-15T08:00:00Z"
+  }]
+}
+```
+
+## Common Visit Error Codes
+
+| Error Code | Meaning | Solution |
+|------------|---------|----------|
+| `-100` | Client not found | Create client first |
+| `-101` | Employee not found | Create employee first |
+| `TIME-01` | CallOut ≤ CallIn | Fix call times |
+| `TIME-02` | AdjOut ≤ AdjIn | Fix adjusted times |
+| `TIME-03` | Invalid time combination | Review call logic rules |
+| `-709` | Duplicate SequenceID | Increment SequenceID |
+| `TASK-01` | Missing required tasks | Add tasks for program |
+| `CHANGE-01` | Missing VisitChanges | Add VisitChanges segment |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create Visit" icon="plus" href="/api-reference/visit/create">
+    Submit visit data
+  </Card>
+  <Card title="Call Logic" icon="clock" href="/business-rules/call-logic">
+    Understand time validation
+  </Card>
+</CardGroup>
