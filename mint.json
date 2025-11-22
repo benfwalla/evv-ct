@@ -12,12 +12,16 @@
   },
   "tabs": [
     {
+      "name": "Documentation",
+      "url": "docs/introduction"
+    },
+    {
       "name": "API Reference",
-      "url": "api-reference"
+      "url": "docs/api-reference"
     },
     {
       "name": "Reference Data",
-      "url": "reference"
+      "url": "docs/reference"
     }
   ],
   "navigation": [
