@@ -272,13 +272,6 @@ You can use timestamps as sequence IDs:
   **Critical**: Records must be submitted in the correct order to avoid rejections.
 </Warning>
 
-```mermaid
-graph TD
-    A[1. Create Employees] --> B[2. Create Clients]
-    B --> C[3. Submit Visits]
-    C --> D[4. Check Status]
-```
-
 <Steps>
   <Step title="Employees First">
     Submit all employees before any visits
