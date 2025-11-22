@@ -1,6 +1,6 @@
 {
   "name": "CT EVV API Documentation",
-  "favicon": "/favicon.svg",
+  "favicon": "/docs/favicon.svg",
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
@@ -24,42 +24,42 @@
     {
       "group": "Get Started",
       "pages": [
-        "introduction",
-        "quickstart",
-        "authentication",
-        "environments",
-        "business-rules"
+        "docs/introduction",
+        "docs/quickstart",
+        "docs/authentication",
+        "docs/environments",
+        "docs/business-rules"
       ]
     },
     {
       "group": "API Reference",
       "pages": [
-        "api-reference/introduction"
+        "docs/api-reference/introduction"
       ]
     },
     {
       "group": "Endpoints",
       "pages": [
-        "api-reference/client/overview",
-        "api-reference/client/create",
-        "api-reference/client/status",
-        "api-reference/employee/overview",
-        "api-reference/employee/create",
-        "api-reference/employee/status",
-        "api-reference/visit/overview",
-        "api-reference/visit/create",
-        "api-reference/visit/status"
+        "docs/api-reference/client/overview",
+        "docs/api-reference/client/create",
+        "docs/api-reference/client/status",
+        "docs/api-reference/employee/overview",
+        "docs/api-reference/employee/create",
+        "docs/api-reference/employee/status",
+        "docs/api-reference/visit/overview",
+        "docs/api-reference/visit/create",
+        "docs/api-reference/visit/status"
       ]
     },
     {
       "group": "Reference Data",
       "pages": [
-        "reference/payers-programs",
-        "reference/procedure-codes",
-        "reference/tasks",
-        "reference/reason-codes",
-        "reference/exceptions",
-        "reference/timezones"
+        "docs/reference/payers-programs",
+        "docs/reference/procedure-codes",
+        "docs/reference/tasks",
+        "docs/reference/reason-codes",
+        "docs/reference/exceptions",
+        "docs/reference/timezones"
       ]
     }
   ],
