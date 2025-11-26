@@ -46,6 +46,10 @@ POST https://uat-api.sandata.com/interfaces/intake/employees/rest/api/v1.1
 
 The request body must be a JSON array of employee objects. Each transaction can contain 1-5,000 employees.
 
+<Info>
+  **Payload format**: Always wrap employee objects in `[` and `]`, even when submitting a single employee.
+</Info>
+
 ### Provider Identification (Required)
 
 <ParamField body="ProviderIdentification" type="object" required>

@@ -46,6 +46,10 @@ POST https://uat-api.sandata.com/interfaces/intake/visits/rest/api/v1.1
 
 The request body must be a JSON array of visit objects. Each transaction can contain 1-5,000 visits.
 
+<Info>
+  **Payload format**: Always wrap visit objects in `[` and `]`, even when you are sending a single visit.
+</Info>
+
 ### Provider Identification (Required)
 
 <ParamField body="ProviderIdentification" type="object" required>

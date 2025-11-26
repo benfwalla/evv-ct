@@ -46,6 +46,10 @@ POST https://uat-api.sandata.com/interfaces/intake/clients/rest/api/v1.1
 
 The request body must be a JSON array of client objects. Each transaction can contain 1-5,000 clients.
 
+<Info>
+  **Payload format**: Always wrap client objects in `[` and `]`, even when submitting a single client.
+</Info>
+
 ### Provider Identification (Required)
 
 <ParamField body="ProviderIdentification" type="object" required>
