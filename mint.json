@@ -71,7 +71,7 @@
     ]
   },
   "api": {
-    "baseUrl": "https://api.sandata.com",
+    "baseUrl": "https://uat-api.sandata.com",
     "auth": {
       "method": "basic"
     },
