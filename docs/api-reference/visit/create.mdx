@@ -146,9 +146,7 @@ The request body must be a JSON array of visit objects. Each transaction can con
   
   **Values**: `"true"` or `"false"`
   
-  **Default**: `"false"`
-  
-  **Note**: Can only be true if NO calls exist and NO adjusted times
+  **Note**: Set to false as the default. Set to true if a future scheduled visit previously sent and accepted with NO “CallIn”, “CallOut” or “Adjusted”times to be cancelled / deleted. Can only be applicable to future schedules.
   
   **Max Length**: 5 characters
 </ParamField>
