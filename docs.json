@@ -2,6 +2,9 @@
   "name": "CT EVV API Documentation",
   "theme": "mint",
   "favicon": "/docs/favicon.svg",
+  "colors": {
+    "primary": "#0D9373"
+  },
   "navigation": {
     "tabs": [
       {
