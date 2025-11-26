@@ -1,0 +1,84 @@
+{
+  "name": "CT EVV API Documentation",
+  "favicon": "/docs/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "docs/introduction",
+              "docs/quickstart",
+              "docs/authentication",
+              "docs/environments",
+              "docs/business-rules"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              "docs/api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "docs/api-reference/client/overview",
+              "docs/api-reference/client/create",
+              "docs/api-reference/client/status",
+              "docs/api-reference/employee/overview",
+              "docs/api-reference/employee/create",
+              "docs/api-reference/employee/status",
+              "docs/api-reference/visit/overview",
+              "docs/api-reference/visit/create",
+              "docs/api-reference/visit/status"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference Data",
+        "groups": [
+          {
+            "group": "Reference Data",
+            "pages": [
+              "docs/reference/payers-programs",
+              "docs/reference/procedure-codes",
+              "docs/reference/tasks",
+              "docs/reference/reason-codes",
+              "docs/reference/exceptions",
+              "docs/reference/timezones"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt"
+    ]
+  },
+  "api": {
+    "baseUrl": "https://uat-api.sandata.com",
+    "auth": {
+      "method": "basic"
+    },
+    "playground": {
+      "mode": "show"
+    }
+  }
+}
